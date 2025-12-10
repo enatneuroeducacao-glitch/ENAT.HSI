@@ -27,6 +27,9 @@ export function MenuENAT() {
             </li>
             <li>
               <NavLink to="/resultados" className={({ isActive }) => (isActive ? "text-blue-600 font-medium" : "text-gray-700")}>📊 Resultados</NavLink>
+                        <li>
+                          <NavLink to="/dashboard" className={({ isActive }) => (isActive ? "text-blue-600 font-medium" : "text-gray-700")}>📈 Dashboard</NavLink>
+                        </li>
             </li>
             <li>
               <NavLink to="/cursos" className={({ isActive }) => (isActive ? "text-blue-600 font-medium" : "text-gray-700")}>📚 Cursos</NavLink>
