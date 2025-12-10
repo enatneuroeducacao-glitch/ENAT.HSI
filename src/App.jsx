@@ -12,6 +12,9 @@ import { CadastroInstrutor } from "./pages/CadastroInstrutor";
 import { CadastroAluno } from "./pages/CadastroAluno";
 import { CursosENAT } from "./pages/CursosENAT";
 import { CursoDetalhado } from "./pages/CursoDetalhado";
+import { TestesAvancados } from "./pages/TestesAvancados";
+import { TesteAprofundado } from "./pages/TesteAprofundado";
+import { Certificados } from "./pages/Certificados";
 
 export default function CentralENATHSI() {
   return (
@@ -30,6 +33,9 @@ export default function CentralENATHSI() {
         <Route path="/cadastro/aluno" element={<CadastroAluno />} />
         <Route path="/cursos" element={<CursosENAT />} />
         <Route path="/cursos/:courseId" element={<CursoDetalhado />} />
+        <Route path="/testes" element={<TestesAvancados />} />
+        <Route path="/testes/:testId" element={<TesteAprofundado />} />
+        <Route path="/certificados" element={<Certificados />} />
         <Route path="*" element={<Home />} />
       </Routes>
     </BrowserRouter>
