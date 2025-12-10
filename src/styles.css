@@ -1,0 +1,12 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Minimal custom rules */
+html, body, #root {
+  height: 100%;
+}
+
+a { color: #1f6feb; }
+
+button:focus { outline: 2px solid rgba(59,130,246,0.4); outline-offset: 2px; }
