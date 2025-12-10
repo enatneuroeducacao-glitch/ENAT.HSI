@@ -112,17 +112,55 @@ function MenuENAT({ onNavigate }) {
     </header>
   );
 }
+                  className="text-gray-700 hover:text-blue-600 focus:outline-none"
+                >
+                  {l.label}
+                </button>
+              </li>
+            ))}
+          </ul>
+        </nav>
+      </div>
+    </header>
+  );
+}
 
 // --- Main app component (single-file navigation) ---
 export default function CentralENATHSI() {
   const [page, setPage] = React.useState("home");
+  const [produto, setProduto] = React.useState(null);
+
+  function handleNavigateProduto(key) {
+    setProduto(key);
+    setPage("produto");
+    window.scrollTo(0, 0);
+  }
 
   function renderPage() {
+    if (page === "produto" && produto) {
+      switch (produto) {
+        case "ops":
+          return <ProdutoOPS />;
+        case "go":
+          return <ProdutoGO />;
+        case "map":
+          return <ProdutoMAP />;
+        case "simpro":
+          return <ProdutoSIMPRO />;
+        case "cert":
+          return <ProdutoCERT />;
+        case "vr":
+          return <ProdutoVR />;
+        default:
+          return <ProdutosENAT onNavigateProduto={handleNavigateProduto} />;
+      }
+    }
+
     switch (page) {
       case "sobre":
         return <SobreENAT />;
       case "produtos":
-        return <ProdutosENAT />;
+        return <ProdutosENAT onNavigateProduto={handleNavigateProduto} />;
       case "certificacao":
         return <CertificacaoENAT />;
       case "governanca":
@@ -167,7 +205,7 @@ export default function CentralENATHSI() {
 
   return (
     <div>
-      <MenuENAT onNavigate={setPage} />
+      <MenuENAT onNavigate={(id) => { setPage(id); setProduto(null); window.scrollTo(0,0); }} />
       <div>{renderPage()}</div>
     </div>
   );
