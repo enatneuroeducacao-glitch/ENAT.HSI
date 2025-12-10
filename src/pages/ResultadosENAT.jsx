@@ -1,11 +1,23 @@
 import React from "react";
 import { useTestResults } from "../hooks/useTestResults";
 import { useUserManagement } from "../hooks/useUserManagement";
+import { useInstructorCredentials } from "../hooks/useInstructorCredentials";
 
 export function ResultadosENAT() {
   const { getStoredResults, clearResults, exportToCSV } = useTestResults();
-  const { currentUser } = useUserManagement();
+  const { currentUser, getUserById } = useUserManagement();
+  const { getInstructorStudents } = useInstructorCredentials();
   const results = getStoredResults();
+
+  // Obtém informações do instrutor vinculado (se for aluno)
+  const linkedInstructor = currentUser?.linkedInstructorId 
+    ? getUserById(currentUser.linkedInstructorId) 
+    : null;
+
+  // Obtém alunos vinculados (se for instrutor)
+  const linkedStudents = currentUser?.role === "instrutor" 
+    ? getInstructorStudents(currentUser.id) 
+    : null;
 
   const handleDownloadCSV = () => {
     exportToCSV(results, `ENAT_Relatorio_${new Date().toISOString().split("T")[0]}.csv`, currentUser);
@@ -28,6 +40,30 @@ export function ResultadosENAT() {
                     : `Aluno • ${currentUser.school}`}
                 </p>
                 <p className="text-sm text-gray-500 mt-2">{currentUser.email}</p>
+
+                {/* Informações de Vínculo para Alunos */}
+                {currentUser.role === "aluno" && linkedInstructor && (
+                  <div className="mt-4 pt-4 border-t border-blue-300">
+                    <p className="text-xs font-semibold text-blue-700 mb-1">👨‍🏫 Instrutor Vinculado:</p>
+                    <p className="text-sm text-gray-700 font-medium">{linkedInstructor.name}</p>
+                    <p className="text-xs text-gray-600">{linkedInstructor.specialization}</p>
+                  </div>
+                )}
+
+                {/* Informações de Alunos Vinculados para Instrutores */}
+                {currentUser.role === "instrutor" && linkedStudents && linkedStudents.length > 0 && (
+                  <div className="mt-4 pt-4 border-t border-blue-300">
+                    <p className="text-xs font-semibold text-blue-700 mb-2">👨‍🎓 Alunos Vinculados: ({linkedStudents.length})</p>
+                    <div className="text-xs space-y-1">
+                      {linkedStudents.slice(0, 3).map((student) => (
+                        <p key={student.id} className="text-gray-700">• {student.name}</p>
+                      ))}
+                      {linkedStudents.length > 3 && (
+                        <p className="text-gray-600 italic">+ {linkedStudents.length - 3} aluno(s)</p>
+                      )}
+                    </div>
+                  </div>
+                )}
               </div>
               <div className="text-right text-sm text-gray-600">
                 <p className="font-semibold">{currentUser.role === "instrutor" ? "👨‍🏫" : "👨‍🎓"}</p>

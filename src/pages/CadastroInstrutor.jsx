@@ -1,10 +1,12 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useUserManagement } from "../hooks/useUserManagement";
+import { useInstructorCredentials } from "../hooks/useInstructorCredentials";
 
 export function CadastroInstrutor() {
   const navigate = useNavigate();
   const { registerUser } = useUserManagement();
+  const { generateCredential, storeCredential } = useInstructorCredentials();
 
   const [formData, setFormData] = useState({
     name: "",
@@ -14,6 +16,7 @@ export function CadastroInstrutor() {
     institution: "",
     specialization: "",
     yearsExperience: "",
+    credentialId: "",
     consent: {
       dataCollection: false,
       dataProcessing: false,
@@ -41,6 +44,9 @@ export function CadastroInstrutor() {
     if (!formData.specialization.trim()) newErrors.specialization = "Especialização é obrigatória";
     if (!formData.yearsExperience || formData.yearsExperience < 0) {
       newErrors.yearsExperience = "Anos de experiência inválido";
+    }
+    if (!formData.credentialId.trim()) {
+      newErrors.credentialId = "Credencial de instrutor é obrigatória";
     }
     if (!formData.consent.dataCollection) {
       newErrors.consent =
@@ -111,10 +117,22 @@ export function CadastroInstrutor() {
       return;
     }
 
+    // Gera credencial única e a armazena
+    const credentialId = generateCredential();
+    storeCredential(Date.now(), credentialId); // Usa timestamp temporário, será atualizado após registro
+
     const newUser = registerUser({
       ...formData,
       role: "instrutor",
+      credentialId: credentialId,
     });
+
+    // Atualiza a credencial com o ID do usuário real
+    const credentials = JSON.parse(localStorage.getItem("enat_instructor_credentials") || "{}");
+    if (credentials[credentialId]) {
+      credentials[credentialId].instructorId = newUser.id;
+      localStorage.setItem("enat_instructor_credentials", JSON.stringify(credentials));
+    }
 
     setSubmitted(true);
     setTimeout(() => {
@@ -268,6 +286,48 @@ export function CadastroInstrutor() {
                   min="0"
                 />
                 {errors.yearsExperience && <p className="text-red-500 text-sm mt-1">{errors.yearsExperience}</p>}
+              </div>
+            </div>
+          </div>
+
+          {/* Credencial de Instrutor */}
+          <div className="border-b pb-6">
+            <h2 className="text-xl font-semibold text-gray-700 mb-4">🔐 Credencial de Instrutor</h2>
+
+            <div className="bg-amber-50 border border-amber-200 rounded-lg p-4 mb-4">
+              <p className="text-sm text-amber-900 mb-4">
+                Sua credencial de instrutor é um identificador único que permite que alunos se vinculem a você. <strong>Guarde-a com segurança.</strong>
+              </p>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Credencial Gerada *</label>
+                <div className="flex gap-2">
+                  <input
+                    type="text"
+                    name="credentialId"
+                    value={formData.credentialId}
+                    onChange={handleInputChange}
+                    className={`flex-1 px-4 py-2 border rounded-lg bg-amber-100 font-mono text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none ${
+                      errors.credentialId ? "border-red-500" : "border-gray-300"
+                    }`}
+                    placeholder="Será gerada automaticamente"
+                    readOnly
+                  />
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const newCredential = generateCredential();
+                      setFormData((prev) => ({ ...prev, credentialId: newCredential }));
+                    }}
+                    className="px-6 py-2 bg-amber-600 text-white rounded-lg hover:bg-amber-700 font-semibold transition whitespace-nowrap"
+                  >
+                    Gerar Credencial
+                  </button>
+                </div>
+                {errors.credentialId && <p className="text-red-500 text-sm mt-1">{errors.credentialId}</p>}
+                <p className="text-xs text-gray-500 mt-2">
+                  ℹ️ Compartilhe apenas esta credencial com seus alunos para que se vinculem a você.
+                </p>
               </div>
             </div>
           </div>

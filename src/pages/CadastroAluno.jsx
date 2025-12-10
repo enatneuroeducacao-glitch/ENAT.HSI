@@ -1,10 +1,12 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useUserManagement } from "../hooks/useUserManagement";
+import { useInstructorCredentials } from "../hooks/useInstructorCredentials";
 
 export function CadastroAluno() {
   const navigate = useNavigate();
   const { registerUser } = useUserManagement();
+  const { validateCredential, getInstructorByCredential, linkStudentToInstructor } = useInstructorCredentials();
 
   const [formData, setFormData] = useState({
     name: "",
@@ -17,6 +19,7 @@ export function CadastroAluno() {
     parentName: "",
     parentEmail: "",
     parentPhone: "",
+    instructorCredential: "",
     parentConsent: false,
     consent: {
       dataCollection: false,
@@ -28,6 +31,8 @@ export function CadastroAluno() {
 
   const [errors, setErrors] = useState({});
   const [submitted, setSubmitted] = useState(false);
+  const [instructorInfo, setInstructorInfo] = useState(null);
+  const [credentialError, setCredentialError] = useState(null);
 
   const validateForm = () => {
     const newErrors = {};
@@ -51,6 +56,10 @@ export function CadastroAluno() {
     }
     if (!formData.parentPhone.match(/^\(\d{2}\)\s\d{4,5}-\d{4}$/)) {
       newErrors.parentPhone = "Telefone do responsável deve estar no formato: (00) 0000-0000";
+    }
+
+    if (!formData.instructorCredential.trim()) {
+      newErrors.instructorCredential = "Credencial do instrutor é obrigatória";
     }
 
     if (!formData.consent.dataCollection) {
@@ -127,6 +136,20 @@ export function CadastroAluno() {
       return;
     }
 
+    // Valida credencial do instrutor
+    if (!validateCredential(formData.instructorCredential.toUpperCase())) {
+      setErrors({ ...errors, instructorCredential: "Credencial de instrutor inválida" });
+      setCredentialError("Credencial não encontrada. Verifique com seu instrutor.");
+      return;
+    }
+
+    const instructor = getInstructorByCredential(formData.instructorCredential.toUpperCase());
+    if (!instructor) {
+      setErrors({ ...errors, instructorCredential: "Instrutor não encontrado" });
+      setCredentialError("Não foi possível encontrar o instrutor desta credencial.");
+      return;
+    }
+
     const newUser = registerUser({
       name: formData.name,
       email: formData.email,
@@ -140,7 +163,20 @@ export function CadastroAluno() {
       parentPhone: formData.parentPhone,
       consent: formData.consent,
       role: "aluno",
+      linkedInstructorId: instructor.id,
+      linkedCredentialId: formData.instructorCredential.toUpperCase(),
     });
+
+    // Vincula o aluno ao instrutor
+    try {
+      linkStudentToInstructor(
+        formData.instructorCredential.toUpperCase(),
+        newUser.id,
+        instructor.id
+      );
+    } catch (error) {
+      console.error("Erro ao vincular aluno:", error);
+    }
 
     setSubmitted(true);
     setTimeout(() => {
@@ -305,6 +341,61 @@ export function CadastroAluno() {
                 </select>
                 {errors.grade && <p className="text-red-500 text-sm mt-1">{errors.grade}</p>}
               </div>
+            </div>
+          </div>
+
+          {/* Vinculação com Instrutor */}
+          <div className="border-b pb-6">
+            <h2 className="text-xl font-semibold text-gray-700 mb-4">👨‍🏫 Vinculação com Instrutor</h2>
+
+            <div className="bg-purple-50 border border-purple-200 rounded-lg p-4 mb-4">
+              <p className="text-sm text-purple-900 mb-4">
+                Para se registrar, você deve ter sido autorizado por um instrutor. Peça ao seu instrutor a <strong>credencial de instrutor</strong>.
+              </p>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Credencial do Instrutor *</label>
+                <input
+                  type="text"
+                  name="instructorCredential"
+                  value={formData.instructorCredential.toUpperCase()}
+                  onChange={(e) => {
+                    const upperValue = e.target.value.toUpperCase();
+                    setFormData((prev) => ({ ...prev, instructorCredential: upperValue }));
+                    setCredentialError(null);
+                    
+                    // Valida a credencial enquanto o usuário digita
+                    if (upperValue && /^ENAT-INST-\d{4}-[A-Z0-9]{5}$/.test(upperValue)) {
+                      const instructor = getInstructorByCredential(upperValue);
+                      if (instructor) {
+                        setInstructorInfo(instructor);
+                      }
+                    } else {
+                      setInstructorInfo(null);
+                    }
+                  }}
+                  className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent outline-none font-mono text-sm ${
+                    errors.instructorCredential ? "border-red-500" : "border-gray-300"
+                  }`}
+                  placeholder="Ex: ENAT-INST-2025-ABC12"
+                />
+                {errors.instructorCredential && <p className="text-red-500 text-sm mt-1">{errors.instructorCredential}</p>}
+                {credentialError && <p className="text-red-500 text-sm mt-1">{credentialError}</p>}
+              </div>
+
+              {instructorInfo && (
+                <div className="mt-4 p-3 bg-green-100 border border-green-300 rounded-lg">
+                  <p className="text-sm text-green-800">
+                    <strong>✓ Credencial válida!</strong>
+                  </p>
+                  <p className="text-sm text-green-700 mt-1">
+                    Instrutor: <strong>{instructorInfo.name}</strong>
+                  </p>
+                  <p className="text-sm text-green-700">
+                    Especialização: {instructorInfo.specialization}
+                  </p>
+                </div>
+              )}
             </div>
           </div>
 
