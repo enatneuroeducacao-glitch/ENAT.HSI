@@ -328,6 +328,19 @@ export function useAdvancedTests() {
 
       if (!test) return null;
 
+      // Limite de tentativas diárias por teste: 2 por dia
+      const today = new Date().toDateString();
+      const attemptsToday = testResults.filter(
+        (r) => r.userId === userId && r.testId === testId && new Date(r.timestamp).toDateString() === today
+      ).length;
+      if (attemptsToday >= 2) {
+        return {
+          error: "limit",
+          message: "Limite de 2 tentativas diárias atingido para este teste.",
+          attemptsToday,
+        };
+      }
+
       let correctCount = 0;
       const detailedAnswers = [];
 
@@ -369,7 +382,9 @@ export function useAdvancedTests() {
 
       // Gera certificado se aprovado
       if (approved) {
-        generateCertificate(testId, userId, score, test.title);
+        // Gera certificado e inicia geração de PDF assincronamente
+        const cert = generateCertificate(testId, userId, score, test.title);
+        result.certificateId = cert.id;
       }
 
       return result;
@@ -388,14 +403,47 @@ export function useAdvancedTests() {
         issuedAt: new Date().toISOString(),
         issuedDate: new Date().toLocaleDateString("pt-BR"),
         expiresAt: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString(),
-        expiresDate: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toLocaleDateString(
-          "pt-BR"
-        ),
+        expiresDate: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toLocaleDateString("pt-BR"),
+        pdfDataUrl: null,
       };
 
       const updated = [...certificateData, certificate];
       setCertificateData(updated);
       localStorage.setItem("enat_certificates", JSON.stringify(updated));
+
+      // Async: gerar PDF do certificado usando jspdf e anexar dataUrl
+      (async () => {
+        try {
+          const { jsPDF } = await import("jspdf");
+          const doc = new jsPDF({ unit: "pt", format: "a4", orientation: "landscape" });
+          doc.setFontSize(22);
+          doc.text("CERTIFICADO ENAT HSI", 40, 80);
+          doc.setFontSize(14);
+          doc.text(`ID: ${certificate.id}`, 40, 110);
+          doc.text(`Usuário ID: ${userId}`, 40, 140);
+          doc.text(`Teste: ${testTitle}`, 40, 170);
+          doc.text(`Pontuação: ${score}/10`, 40, 200);
+          doc.text(`Emissão: ${certificate.issuedDate}`, 40, 230);
+          doc.text(`Validade: ${certificate.expiresDate}`, 40, 260);
+
+          // Marca d'água simples
+          doc.setTextColor(200, 200, 200);
+          doc.setFontSize(48);
+          doc.text("ENAT HSI", 300, 220, { angle: 45 });
+
+          const dataUrl = doc.output("datauristring");
+
+          // Atualiza o certificado com o pdfDataUrl
+          const refreshed = (localStorage.getItem("enat_certificates")
+            ? JSON.parse(localStorage.getItem("enat_certificates"))
+            : []).map((c) => (c.id === certificate.id ? { ...c, pdfDataUrl: dataUrl } : c));
+
+          setCertificateData(refreshed);
+          localStorage.setItem("enat_certificates", JSON.stringify(refreshed));
+        } catch (err) {
+          // falha na geração do PDF — não bloqueia o fluxo
+        }
+      })();
 
       return certificate;
     },

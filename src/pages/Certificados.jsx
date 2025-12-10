@@ -214,24 +214,38 @@ export function Certificados() {
                 <div className="p-6 bg-gray-50 border-t border-gray-200 flex gap-4">
                   <button
                     onClick={() => {
-                      const element = document.createElement("a");
-                      element.setAttribute(
-                        "href",
-                        `data:text/plain;charset=utf-8,${encodeURIComponent(
-                          `CERTIFICADO ENAT HSI\n\n` +
-                            `ID: ${cert.id}\n` +
-                            `Aluno: ${currentUser.name}\n` +
-                            `Teste: ${cert.testTitle}\n` +
-                            `Pontuação: ${cert.score.toFixed(1)}/10\n` +
-                            `Emissão: ${issueDate.toLocaleDateString("pt-BR")}\n` +
-                            `Validade: ${expireDate.toLocaleDateString("pt-BR")}\n` +
-                            `Status: ${expired ? "Expirado" : "Válido"}`
-                        )}`
-                      );
-                      element.setAttribute("download", `${cert.id}.txt`);
-                      document.body.appendChild(element);
-                      element.click();
-                      document.body.removeChild(element);
+                      try {
+                        if (cert.pdfDataUrl) {
+                          const a = document.createElement("a");
+                          a.href = cert.pdfDataUrl;
+                          a.download = `${cert.id}.pdf`;
+                          document.body.appendChild(a);
+                          a.click();
+                          document.body.removeChild(a);
+                          return;
+                        }
+
+                        const element = document.createElement("a");
+                        element.setAttribute(
+                          "href",
+                          `data:text/plain;charset=utf-8,${encodeURIComponent(
+                            `CERTIFICADO ENAT HSI\n\n` +
+                              `ID: ${cert.id}\n` +
+                              `Aluno: ${currentUser.name}\n` +
+                              `Teste: ${cert.testTitle}\n` +
+                              `Pontuação: ${cert.score.toFixed(1)}/10\n` +
+                              `Emissão: ${issueDate.toLocaleDateString("pt-BR")}\n` +
+                              `Validade: ${expireDate.toLocaleDateString("pt-BR")}\n` +
+                              `Status: ${expired ? "Expirado" : "Válido"}`
+                          )}`
+                        );
+                        element.setAttribute("download", `${cert.id}.txt`);
+                        document.body.appendChild(element);
+                        element.click();
+                        document.body.removeChild(element);
+                      } catch (err) {
+                        alert("Falha ao baixar o certificado.");
+                      }
                     }}
                     className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-semibold transition"
                   >

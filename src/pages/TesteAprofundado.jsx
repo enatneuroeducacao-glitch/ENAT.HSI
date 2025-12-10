@@ -49,6 +49,36 @@ export function TesteAprofundado() {
   }
 
   if (showResult && testResult) {
+    if (testResult.error === "limit") {
+      // Show limit message
+      return (
+        <div className="min-h-screen bg-gradient-to-br from-yellow-50 to-orange-100 py-12 px-4 pt-24">
+          <div className="max-w-md mx-auto bg-white rounded-lg shadow-lg p-8 text-center">
+            <div className="text-6xl mb-4">⛔</div>
+            <h2 className="text-2xl font-bold mb-2">Limite de Tentativas Atingido</h2>
+            <p className="text-gray-700 mb-4">{testResult.message}</p>
+            <p className="text-sm text-gray-600 mb-6">Você pode tentar novamente amanhã.</p>
+            <div className="flex gap-3 justify-center">
+              <button
+                onClick={() => navigate('/testes')}
+                className="px-4 py-2 bg-indigo-600 text-white rounded-lg"
+              >
+                Voltar aos Testes
+              </button>
+              <button
+                onClick={() => {
+                  setShowResult(false);
+                  setTestResult(null);
+                }}
+                className="px-4 py-2 bg-gray-200 text-gray-800 rounded-lg"
+              >
+                Fechar
+              </button>
+            </div>
+          </div>
+        </div>
+      );
+    }
     const statusColor = testResult.approved ? "green" : "red";
     const statusIcon = testResult.approved ? "✅" : "❌";
     const statusText = testResult.approved ? "APROVADO" : "NÃO APROVADO";
