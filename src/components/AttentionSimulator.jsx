@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from "react";
+import { useTestResults } from "../hooks/useTestResults";
 
 export function AttentionSimulator() {
+  const { addTestResult } = useTestResults();
   const [started, setStarted] = useState(false);
   const [score, setScore] = useState(0);
   const [target, setTarget] = useState(null);
@@ -29,6 +31,21 @@ export function AttentionSimulator() {
     setTimeLeft(30);
     setGameOver(false);
     generateTarget();
+  };
+
+  const handleTestComplete = () => {
+    addTestResult({
+      testType: "Teste de Atenção",
+      protocol: "ENAT SCE-ATN v1.0",
+      method: "Discriminação seletiva de estímulos visuais",
+      score: score,
+      maxScore: 30,
+      accuracy: Math.round((score / 30) * 100),
+      duration: 30,
+      difficulty: "Moderada",
+      status: "Concluído",
+      notes: `${score} acertos em 30 segundos`,
+    });
   };
 
   const generateTarget = () => {
@@ -87,10 +104,13 @@ export function AttentionSimulator() {
               <p className="font-bold text-green-800">Teste finalizado!</p>
               <p className="text-green-700">Sua pontuação: {score}</p>
               <button
-                onClick={startGame}
+                onClick={() => {
+                  handleTestComplete();
+                  startGame();
+                }}
                 className="mt-4 px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
               >
-                Tentar Novamente
+                Salvar e Tentar Novamente
               </button>
             </div>
           )}

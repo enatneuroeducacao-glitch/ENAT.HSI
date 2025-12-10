@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from "react";
+import { useTestResults } from "../hooks/useTestResults";
 
 export function EmotionalControlSimulator() {
+  const { addTestResult } = useTestResults();
   const [started, setStarted] = useState(false);
   const [round, setRound] = useState(0);
   const [stressLevel, setStressLevel] = useState(0);
@@ -55,6 +57,21 @@ export function EmotionalControlSimulator() {
 
   const progressColor =
     stressLevel < 33 ? "bg-green-500" : stressLevel < 66 ? "bg-yellow-500" : "bg-red-500";
+
+  const handleTestComplete = () => {
+    addTestResult({
+      testType: "Teste de Controle Emocional",
+      protocol: "ENAT SCE-EMO v1.0",
+      method: "Gerenciamento progressivo de estresse em 5 rodadas",
+      score: score,
+      maxScore: 500,
+      accuracy: Math.round((score / 500) * 100),
+      duration: round,
+      difficulty: "Variável",
+      status: "Concluído",
+      notes: `${calmingActions} ações de controle em ${round} rodadas, score final: ${score}`,
+    });
+  };
 
   return (
     <div className="p-6 bg-white rounded-lg shadow-md">
@@ -116,10 +133,13 @@ export function EmotionalControlSimulator() {
 
           {gameOver && (
             <button
-              onClick={startGame}
+              onClick={() => {
+                handleTestComplete();
+                startGame();
+              }}
               className="w-full px-6 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700"
             >
-              Tentar Novamente
+              Salvar e Tentar Novamente
             </button>
           )}
         </>

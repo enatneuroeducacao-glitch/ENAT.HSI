@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from "react";
+import { useTestResults } from "../hooks/useTestResults";
 
 export function MemorySimulator() {
+  const { addTestResult } = useTestResults();
   const [started, setStarted] = useState(false);
   const [level, setLevel] = useState(1);
   const [sequence, setSequence] = useState([]);
@@ -81,6 +83,21 @@ export function MemorySimulator() {
     }
   };
 
+  const handleTestComplete = () => {
+    addTestResult({
+      testType: "Teste de Memória",
+      protocol: "ENAT COG-MEM v1.0",
+      method: "Reprodução de sequências visuais com progressão exponencial",
+      score: score,
+      maxScore: level * 10 * level,
+      accuracy: Math.round((score / (level * 10 * level)) * 100),
+      duration: level,
+      difficulty: `Nível ${level}`,
+      status: "Concluído",
+      notes: `${level} níveis atingidos, score final: ${score}`,
+    });
+  };
+
   return (
     <div className="p-6 bg-white rounded-lg shadow-md">
       <h3 className="text-2xl font-bold mb-4">Simulador de Memória</h3>
@@ -117,10 +134,13 @@ export function MemorySimulator() {
 
           {gameOver && (
             <button
-              onClick={startGame}
+              onClick={() => {
+                handleTestComplete();
+                startGame();
+              }}
               className="w-full px-6 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700"
             >
-              Tentar Novamente
+              Salvar e Tentar Novamente
             </button>
           )}
         </>

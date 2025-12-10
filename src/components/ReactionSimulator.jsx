@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from "react";
+import { useTestResults } from "../hooks/useTestResults";
 
 export function ReactionSimulator() {
+  const { addTestResult } = useTestResults();
   const [started, setStarted] = useState(false);
   const [ready, setReady] = useState(false);
   const [reactionTime, setReactionTime] = useState(null);
@@ -40,6 +42,22 @@ export function ReactionSimulator() {
   };
 
   const averageTime = times.length > 0 ? Math.round(times.reduce((a, b) => a + b) / times.length) : 0;
+
+  const handleTestComplete = () => {
+    if (times.length === 0) return;
+    addTestResult({
+      testType: "Teste de Tempo de Reação",
+      protocol: "ENAT SIS-RXN v1.0",
+      method: "Resposta motora a estímulo visual não-previsível",
+      score: averageTime,
+      maxScore: 5000,
+      accuracy: Math.max(0, 100 - (averageTime / 50)),
+      duration: times.length,
+      difficulty: "Média",
+      status: "Concluído",
+      notes: `${times.length} tentativas, média: ${averageTime}ms`,
+    });
+  };
 
   return (
     <div className="p-6 bg-white rounded-lg shadow-md">
@@ -82,6 +100,18 @@ export function ReactionSimulator() {
               </span>
             ))}
           </div>
+          <button
+            onClick={() => {
+              handleTestComplete();
+              setTimes([]);
+              setReactionTime(null);
+              setMessage("✓ Resultado salvo!");
+              setTimeout(() => setMessage(""), 2000);
+            }}
+            className="mt-4 px-6 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 mr-2"
+          >
+            Salvar Resultado
+          </button>
           <button
             onClick={() => {
               setTimes([]);
