@@ -1,18 +1,43 @@
 import React from "react";
 import { useTestResults } from "../hooks/useTestResults";
+import { useUserManagement } from "../hooks/useUserManagement";
 
 export function ResultadosENAT() {
   const { getStoredResults, clearResults, exportToCSV } = useTestResults();
+  const { currentUser } = useUserManagement();
   const results = getStoredResults();
 
   const handleDownloadCSV = () => {
-    exportToCSV(results, `ENAT_Relatorio_${new Date().toISOString().split("T")[0]}.csv`);
+    exportToCSV(results, `ENAT_Relatorio_${new Date().toISOString().split("T")[0]}.csv`, currentUser);
   };
 
   return (
     <div className="min-h-screen bg-gray-50 py-12 px-4">
       <div className="max-w-6xl mx-auto">
         <h1 className="text-4xl font-bold text-gray-800 mb-8">Resultados dos Testes</h1>
+
+        {currentUser && (
+          <div className="bg-blue-50 border border-blue-200 rounded-lg shadow-md p-6 mb-8">
+            <div className="flex justify-between items-start">
+              <div>
+                <p className="text-sm text-blue-600 font-semibold">Usuário Conectado</p>
+                <h2 className="text-2xl font-bold text-gray-800">{currentUser.name}</h2>
+                <p className="text-gray-600 mt-1">
+                  {currentUser.role === "instrutor"
+                    ? `Instrutor • ${currentUser.institution}`
+                    : `Aluno • ${currentUser.school}`}
+                </p>
+                <p className="text-sm text-gray-500 mt-2">{currentUser.email}</p>
+              </div>
+              <div className="text-right text-sm text-gray-600">
+                <p className="font-semibold">{currentUser.role === "instrutor" ? "👨‍🏫" : "👨‍🎓"}</p>
+                <p className="mt-2 text-xs text-gray-500">
+                  Cadastrado em: {new Date(currentUser.registeredAt).toLocaleDateString("pt-BR")}
+                </p>
+              </div>
+            </div>
+          </div>
+        )}
 
         {results.length === 0 ? (
           <div className="bg-white rounded-lg shadow-md p-8 text-center">

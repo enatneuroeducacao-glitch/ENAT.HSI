@@ -8,6 +8,8 @@ import { CertificacaoENAT } from "./pages/CertificacaoENAT";
 import { GovernancaENAT } from "./pages/GovernancaENAT";
 import { ContatoENAT } from "./pages/ContatoENAT";
 import { ResultadosENAT } from "./pages/ResultadosENAT";
+import { CadastroInstrutor } from "./pages/CadastroInstrutor";
+import { CadastroAluno } from "./pages/CadastroAluno";
 
 export default function CentralENATHSI() {
   return (
@@ -22,6 +24,8 @@ export default function CentralENATHSI() {
         <Route path="/governanca" element={<GovernancaENAT />} />
         <Route path="/contato" element={<ContatoENAT />} />
         <Route path="/resultados" element={<ResultadosENAT />} />
+        <Route path="/cadastro/instrutor" element={<CadastroInstrutor />} />
+        <Route path="/cadastro/aluno" element={<CadastroAluno />} />
         <Route path="*" element={<Home />} />
       </Routes>
     </BrowserRouter>

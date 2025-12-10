@@ -24,7 +24,7 @@ export function useTestResults() {
     localStorage.removeItem("enat_test_results");
   }, []);
 
-  const exportToCSV = useCallback((results, filename = "ENAT_Relatorio_Testes.csv") => {
+  const exportToCSV = useCallback((results, filename = "ENAT_Relatorio_Testes.csv", currentUser = null) => {
     if (!results || results.length === 0) {
       alert("Nenhum resultado para exportar.");
       return;
@@ -60,11 +60,26 @@ export function useTestResults() {
       result.notes || "",
     ]);
 
+    // Informações do usuário
+    const userInfo = currentUser ? [
+      "",
+      "INFORMAÇÕES DO USUÁRIO",
+      "",
+      `Nome: ${currentUser.name}`,
+      `Email: ${currentUser.email}`,
+      `Função: ${currentUser.role === "instrutor" ? "Instrutor" : "Aluno"}`,
+      currentUser.role === "instrutor" ? `Especialização: ${currentUser.specialization}` : `Escola: ${currentUser.school}`,
+      currentUser.role === "instrutor" ? `Instituição: ${currentUser.institution}` : `Série/Ano: ${currentUser.grade}`,
+      `Cadastrado em: ${new Date(currentUser.registeredAt).toLocaleDateString("pt-BR")}`,
+      "",
+    ] : [];
+
     const csvContent = [
       "ENAT HSI - RELATÓRIO DE TESTES NEUROEDUCACIONAIS",
       "Sistema de Avaliação de Segurança Instrucional",
       `Gerado em: ${new Date().toLocaleString("pt-BR")}`,
       "",
+      ...userInfo,
       headers.join(","),
       ...rows.map((row) => row.map((cell) => `"${cell}"`).join(",")),
       "",
@@ -74,6 +89,13 @@ export function useTestResults() {
       '"Tempo de Reação","Protocolo: ENAT SIS-RXN v1.0","Método: Resposta motora a estímulo visual não-previsível (2-5s)","Métrica: Milissegundos (ms) com intervalo de confiança"',
       '"Controle Emocional","Protocolo: ENAT SCE-EMO v1.0","Método: Gerenciamento progressivo de estresse em 5 rodadas","Métrica: Redução % de estresse por técnica"',
       '"Memória","Protocolo: ENAT COG-MEM v1.0","Método: Reprodução de sequências visuais com progressão exponencial","Métrica: Nível atingido e tempo de reação por estímulo"',
+      "",
+      "CONFORMIDADE LGPD",
+      "",
+      '"Este relatório foi gerado conforme a Lei Geral de Proteção de Dados (LGPD - Lei nº 13.709/2018)"',
+      '"Os dados pessoais contidos neste documento são confidenciais e de uso exclusivo do titular"',
+      '"Direitos do titular: acessar, corrigir, excluir ou portar seus dados a qualquer momento"',
+      '"Para exercer esses direitos, contate: privacy@enat.hsi"',
       "",
       "REFERÊNCIAS TÉCNICAS",
       '"Baseado em protocolos de neuroeducação aplicada"',
