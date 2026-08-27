@@ -3,6 +3,11 @@ import { createRoot } from "react-dom/client";
 import CentralENATHSI from "./App.jsx";
 import "./styles.css";
 
+// Compatibilidade para componentes legados que ainda referenciam o namespace React
+// sem importá-lo explicitamente. Mantemos o runtime moderno do JSX e evitamos
+// que um componente isolado derrube toda a aplicação em produção.
+globalThis.React = React;
+
 class AppErrorBoundary extends React.Component {
   constructor(props) {
     super(props);
