@@ -1,0 +1,35 @@
+name: Fix certificate student autofill
+on:
+  push:
+    paths:
+      - '.github/workflows/fix-cpf-autofill.yml'
+permissions:
+  contents: write
+jobs:
+  fix:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Patch issuer validation
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          p=Path('src/pages/EmissorCertificadosFinal.jsx')
+          s=p.read_text()
+          old='const emit=async()=>{if(!student.name.trim()||digits(student.cpf).length!==11)return setMsg("Informe nome completo e CPF válido.");'
+          new='const emit=async()=>{const name=String(student.name||document.getElementById("student-name")?.value||"").trim();const cpf=digits(student.cpf||document.getElementById("student-cpf")?.value||"");if(!name||cpf.length!==11)return setMsg("Informe nome completo e CPF válido.");'
+          if old not in s: raise SystemExit('validation pattern not found')
+          s=s.replace(old,new,1)
+          s=s.replace('student_name:student.name.trim(),student_credential:', 'student_name:name,student_credential:',1)
+          s=s.replace('new TextEncoder().encode(digits(student.cpf))', 'new TextEncoder().encode(cpf)',1)
+          s=s.replace('<label>Nome completo<input value={student.name}', '<label>Nome completo<input id="student-name" value={student.name}',1)
+          s=s.replace('<label>CPF<input value={cpfMask(student.cpf)}', '<label>CPF<input id="student-cpf" value={cpfMask(student.cpf)}',1)
+          p.write_text(s)
+          PY
+      - name: Commit patch
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add src/pages/EmissorCertificadosFinal.jsx
+          git diff --cached --quiet || git commit -m 'Corrige leitura de nome e CPF no emissor'
+          git push
