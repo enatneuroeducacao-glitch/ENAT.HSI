@@ -1,596 +1,95 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { jsPDF } from "jspdf";
 import QRCode from "qrcode";
-import { cancelCertificate, getSession, issueCertificate, listCertificates, signIn, signOut, signUp } from "../lib/certificatesApi";
+import { cancelCertificate, createInstructor, deleteInstructor, getSession, issueCertificate, listCertificates, listInstructors, signIn, signOut, signUp } from "../lib/certificatesApi";
 import "./EmissorCertificadosAdmin.css";
 
-const COURSE_KEY = "enat_certificate_course_v2";
+const COURSE_KEY = "enat_certificate_course_v3";
 const INSTITUTION_KEY = "enat_certificate_institution_v2";
 const BRAND_KEY = "enat_certificate_brand_v2";
 const BRAND_DB = "enat-certificate-brand";
 const BRAND_STORE = "assets";
+const TEACHER_QUALIFICATIONS = ["Graduado", "Especialista", "Mestre", "Doutor", "Pós-doutor"];
+
+const defaultModules = [
+  { title: "Módulo 1 – Neurociência e Consciência no Trânsito", hours: 24, lessons: ["Fundamentos da neuroaprendizagem", "Funcionamento do cérebro sob estresse e atenção", "Emoção e cognição na direção", "Introdução à neuroética no trânsito"] },
+  { title: "Módulo 2 – Neuroeducação e Autogestão Emocional", hours: 24, lessons: ["Técnicas de autorregulação emocional", "Respiração consciente e foco atencional", "Ansiedade e impulsividade na direção", "Práticas de mindfulness aplicadas ao trânsito"] },
+  { title: "Módulo 3 – Tomada de Decisão e Neuroética", hours: 24, lessons: ["Julgamento moral e responsabilidade social", "A empatia como critério de decisão", "Conflitos éticos no trânsito", "Exercícios de simulação ética"] },
+  { title: "Módulo 4 – Comunicação, Atenção e Convivência", hours: 24, lessons: ["Neurociência da empatia e da linguagem", "Escuta ativa entre condutores", "Comunicação não violenta e gestão de conflitos", "O trânsito como espaço de convivência cidadã"] },
+  { title: "Módulo 5 – Prática Reflexiva e Simuladores Cognitivos", hours: 24, lessons: ["Aplicação prática da neuroaprendizagem", "Observação metacognitiva de situações de risco", "Práticas em simuladores imersivos", "Autoavaliação neuroeducacional"] },
+];
 
 const defaultCourse = {
-  name: "ENAT — Ensino Neuroeducacional Aplicado ao Trânsito",
-  nature: "Curso Livre de Formação e Aperfeiçoamento",
+  name: "Formação de Instrutor Neuroeducador de Trânsito",
+  nature: "Curso Livre de Formação e Capacitação",
   modality: "Online",
   responsible: "ENAT — Ensino Neuroeducacional Aplicado ao Trânsito",
   responsibleRole: "Responsável Técnico",
-  subjects: [
-    ["Legislação e Normas de Trânsito", 20],
-    ["Psicologia, Neurociência e Comportamento", 25],
-    ["Direção Defensiva e Percepção de Risco", 20],
-    ["Infrações e Responsabilidade", 15],
-    ["Mecânica Básica", 10],
-    ["Primeiros Socorros", 10],
-    ["Meio Ambiente, Ética e Cidadania", 20],
-  ],
+  modules: defaultModules.map((m) => ({ ...m, lessons: m.lessons.map((name) => ({ name, hours: 6, teacherId: "" })) })),
 };
 const defaultInstitution = { name: "ENAT — Ensino Neuroeducacional Aplicado ao Trânsito", cnpj: "" };
 const defaultBrand = { enatLogo: "", neuroLogo: "" };
 
-const read = (key, fallback) => {
-  try {
-    return JSON.parse(localStorage.getItem(key) || "") || fallback;
-  } catch {
-    return fallback;
-  }
-};
+const read = (key, fallback) => { try { return JSON.parse(localStorage.getItem(key) || "") || fallback; } catch { return fallback; } };
 const save = (key, value) => localStorage.setItem(key, JSON.stringify(value));
 const onlyDigits = (value) => String(value || "").replace(/\D/g, "");
-const totalHours = (course) => course.subjects.reduce((sum, item) => sum + Number(item[1] || 0), 0);
-const minimumDaysForHours = (hours) => Math.ceil((Number(hours) / 24) * 7);
-const formatDateBR = (value) => value ? new Date(`${value}T12:00:00`).toLocaleDateString("pt-BR") : "";
-const maskCpf = (value) => {
-  const d = onlyDigits(value).slice(0, 11);
-  if (d.length <= 3) return d;
-  if (d.length <= 6) return `${d.slice(0, 3)}.${d.slice(3)}`;
-  if (d.length <= 9) return `${d.slice(0, 3)}.${d.slice(3, 6)}.${d.slice(6)}`;
-  return `${d.slice(0, 3)}.${d.slice(3, 6)}.${d.slice(6, 9)}-${d.slice(9)}`;
-};
-const maskCnpj = (value) => {
-  const d = onlyDigits(value).slice(0, 14);
-  if (d.length <= 2) return d;
-  if (d.length <= 5) return `${d.slice(0, 2)}.${d.slice(2)}`;
-  if (d.length <= 8) return `${d.slice(0, 2)}.${d.slice(2, 5)}.${d.slice(5)}`;
-  if (d.length <= 12) return `${d.slice(0, 2)}.${d.slice(2, 5)}.${d.slice(5, 8)}/${d.slice(8)}`;
-  return `${d.slice(0, 2)}.${d.slice(2, 5)}.${d.slice(5, 8)}/${d.slice(8, 12)}-${d.slice(12)}`;
+const maskCpf = (value) => { const d=onlyDigits(value).slice(0,11); if(d.length<=3)return d; if(d.length<=6)return `${d.slice(0,3)}.${d.slice(3)}`; if(d.length<=9)return `${d.slice(0,3)}.${d.slice(3,6)}.${d.slice(6)}`; return `${d.slice(0,3)}.${d.slice(3,6)}.${d.slice(6,9)}-${d.slice(9)}`; };
+const maskCnpj = (value) => { const d=onlyDigits(value).slice(0,14); if(d.length<=2)return d; if(d.length<=5)return `${d.slice(0,2)}.${d.slice(2)}`; if(d.length<=8)return `${d.slice(0,2)}.${d.slice(2,5)}.${d.slice(5)}`; if(d.length<=12)return `${d.slice(0,2)}.${d.slice(2,5)}.${d.slice(5,8)}/${d.slice(8)}`; return `${d.slice(0,2)}.${d.slice(2,5)}.${d.slice(5,8)}/${d.slice(8,12)}-${d.slice(12)}`; };
+const formatDate = (value) => value ? new Date(`${value}T12:00:00`).toLocaleDateString("pt-BR") : "";
+const daysBetweenInclusive = (start,end) => { if(!start||!end)return 0; const a=new Date(`${start}T00:00:00`); const b=new Date(`${end}T00:00:00`); return Math.floor((b-a)/86400000)+1; };
+const courseFromStorage = () => {
+  const stored = read(COURSE_KEY, null);
+  if (!stored) return defaultCourse;
+  if (Array.isArray(stored.modules) && stored.modules.length) return stored;
+  return { ...defaultCourse, name: stored.name || defaultCourse.name, nature: stored.nature || defaultCourse.nature, modality: stored.modality || defaultCourse.modality, responsible: stored.responsible || defaultCourse.responsible, responsibleRole: stored.responsibleRole || defaultCourse.responsibleRole };
 };
 
-async function hashCpf(cpf) {
-  const bytes = new TextEncoder().encode(onlyDigits(cpf));
-  const hash = await crypto.subtle.digest("SHA-256", bytes);
-  return [...new Uint8Array(hash)].map((b) => b.toString(16).padStart(2, "0")).join("");
-}
+async function hashCpf(cpf) { const bytes=new TextEncoder().encode(onlyDigits(cpf)); const hash=await crypto.subtle.digest("SHA-256",bytes); return [...new Uint8Array(hash)].map((b)=>b.toString(16).padStart(2,"0")).join(""); }
+function imageFormat(data) { return String(data||"").toLowerCase().startsWith("data:image/jpeg") || String(data||"").toLowerCase().startsWith("data:image/jpg") ? "JPEG" : "PNG"; }
+function getImageSize(data) { return new Promise((resolve)=>{ if(!data)return resolve({w:1,h:1}); const img=new Image(); img.onload=()=>resolve({w:img.naturalWidth||1,h:img.naturalHeight||1}); img.onerror=()=>resolve({w:1,h:1}); img.src=data; }); }
+async function addImageContain(doc,data,x,y,maxW,maxH){ if(!data)return; try{const {w,h}=await getImageSize(data); const r=Math.min(maxW/w,maxH/h); const dw=w*r,dh=h*r; doc.addImage(data,imageFormat(data),x+(maxW-dw)/2,y+(maxH-dh)/2,dw,dh,undefined,"FAST");}catch{} }
+async function makeWatermarkData(data,opacity=.1){if(!data)return null;return new Promise((resolve)=>{const img=new Image();img.onload=()=>{try{const c=document.createElement("canvas");c.width=img.naturalWidth||1200;c.height=img.naturalHeight||1000;const ctx=c.getContext("2d");ctx.clearRect(0,0,c.width,c.height);ctx.globalAlpha=opacity;ctx.drawImage(img,0,0);resolve(c.toDataURL("image/png"));}catch{resolve(null);}};img.onerror=()=>resolve(null);img.src=data;});}
+async function addWatermark(doc,data,W,H){try{const faded=await makeWatermarkData(data,.1);if(!faded)return;const {w,h}=await getImageSize(faded);const r=Math.min(112/w,100/h);doc.addImage(faded,"PNG",W/2-(w*r)/2,H/2-(h*r)/2,w*r,h*r,undefined,"FAST");}catch{}}
+function drawPageFrame(doc,W,H){doc.setFillColor(8,14,24);doc.rect(0,0,W,H,"F");doc.setDrawColor(70,190,240);doc.setLineWidth(1.2);doc.rect(10,10,W-20,H-20);}
+function openBrandDb(){return new Promise((resolve,reject)=>{if(typeof indexedDB==="undefined")return reject(new Error("IndexedDB indisponível"));const r=indexedDB.open(BRAND_DB,1);r.onupgradeneeded=()=>{if(!r.result.objectStoreNames.contains(BRAND_STORE))r.result.createObjectStore(BRAND_STORE);};r.onsuccess=()=>resolve(r.result);r.onerror=()=>reject(r.error);});}
+async function getBrandAssets(){try{const db=await openBrandDb();return await new Promise((resolve)=>{const tx=db.transaction(BRAND_STORE,"readonly");const req=tx.objectStore(BRAND_STORE).get("logos");req.onsuccess=()=>resolve(req.result||{});req.onerror=()=>resolve({});});}catch{return {};}}
+async function setBrandAssets(assets){const db=await openBrandDb();return new Promise((resolve,reject)=>{const tx=db.transaction(BRAND_STORE,"readwrite");tx.objectStore(BRAND_STORE).put(assets,"logos");tx.oncomplete=resolve;tx.onerror=()=>reject(tx.error);});}
+function fileToData(file,setter){if(!file)return;const r=new FileReader();r.onload=()=>setter(String(r.result));r.readAsDataURL(file);}
 
-function imageFormat(data) {
-  const source = String(data || "").toLowerCase();
-  return source.startsWith("data:image/jpeg") || source.startsWith("data:image/jpg") ? "JPEG" : "PNG";
-}
-
-function getImageSize(data) {
-  return new Promise((resolve) => {
-    if (!data) return resolve({ w: 1, h: 1 });
-    const img = new Image();
-    img.onload = () => resolve({ w: img.naturalWidth || 1, h: img.naturalHeight || 1 });
-    img.onerror = () => resolve({ w: 1, h: 1 });
-    img.src = data;
-  });
-}
-
-async function addImageContain(doc, data, x, y, maxW, maxH) {
-  if (!data) return false;
-  try {
-    const { w, h } = await getImageSize(data);
-    if (w <= 1 || h <= 1) return false;
-    const ratio = Math.min(maxW / w, maxH / h);
-    const dw = w * ratio;
-    const dh = h * ratio;
-    doc.addImage(data, imageFormat(data), x + (maxW - dw) / 2, y + (maxH - dh) / 2, dw, dh, undefined, "FAST");
-    return true;
-  } catch {
-    return false;
-  }
-}
-
-async function makeWatermarkData(data, opacity = 0.1) {
-  if (!data) return null;
-  return new Promise((resolve) => {
-    const img = new Image();
-    img.onload = () => {
-      try {
-        const canvas = document.createElement("canvas");
-        canvas.width = img.naturalWidth || 1200;
-        canvas.height = img.naturalHeight || 1000;
-        const ctx = canvas.getContext("2d");
-        ctx.clearRect(0, 0, canvas.width, canvas.height);
-        ctx.globalAlpha = opacity;
-        ctx.drawImage(img, 0, 0);
-        resolve(canvas.toDataURL("image/png"));
-      } catch {
-        resolve(null);
-      }
-    };
-    img.onerror = () => resolve(null);
-    img.src = data;
-  });
-}
-
-async function addWatermark(doc, data, width, height) {
-  if (!data) return;
-  try {
-    const faded = await makeWatermarkData(data, 0.1);
-    if (!faded) return;
-    const { w, h } = await getImageSize(faded);
-    const maxW = 112;
-    const maxH = 100;
-    const ratio = Math.min(maxW / w, maxH / h);
-    const dw = w * ratio;
-    const dh = h * ratio;
-    doc.addImage(faded, "PNG", width / 2 - dw / 2, height / 2 - dh / 2, dw, dh, undefined, "FAST");
-  } catch {}
-}
-
-function drawPageFrame(doc, width, height) {
-  doc.setFillColor(8, 14, 24);
-  doc.rect(0, 0, width, height, "F");
-  doc.setDrawColor(70, 190, 240);
-  doc.setLineWidth(1.2);
-  doc.rect(10, 10, width - 20, height - 20);
-}
-
-function openBrandDb() {
-  return new Promise((resolve, reject) => {
-    if (typeof indexedDB === "undefined") return reject(new Error("IndexedDB indisponível"));
-    const request = indexedDB.open(BRAND_DB, 1);
-    request.onupgradeneeded = () => {
-      if (!request.result.objectStoreNames.contains(BRAND_STORE)) request.result.createObjectStore(BRAND_STORE);
-    };
-    request.onsuccess = () => resolve(request.result);
-    request.onerror = () => reject(request.error || new Error("Não foi possível abrir o armazenamento das logos."));
-  });
-}
-
-async function getBrandAssets() {
-  try {
-    const db = await openBrandDb();
-    return await new Promise((resolve) => {
-      const tx = db.transaction(BRAND_STORE, "readonly");
-      const store = tx.objectStore(BRAND_STORE);
-      const request = store.get("logos");
-      request.onsuccess = () => resolve(request.result || {});
-      request.onerror = () => resolve({});
-    });
-  } catch {
-    return {};
-  }
-}
-
-async function setBrandAssets(assets) {
-  const db = await openBrandDb();
-  await new Promise((resolve, reject) => {
-    const tx = db.transaction(BRAND_STORE, "readwrite");
-    tx.objectStore(BRAND_STORE).put(assets, "logos");
-    tx.oncomplete = resolve;
-    tx.onerror = () => reject(tx.error || new Error("Não foi possível salvar a logo."));
-  });
-}
-
-function fileToData(file, setter) {
-  if (!file) return;
-  const reader = new FileReader();
-  reader.onload = () => setter(String(reader.result));
-  reader.readAsDataURL(file);
-}
-
-export function EmissorCertificadosAdmin() {
-  const [session, setSession] = useState(null);
-  const [authMode, setAuthMode] = useState("login");
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [busy, setBusy] = useState(false);
-  const [message, setMessage] = useState("");
-  const [tab, setTab] = useState("emitir");
-  const [course, setCourse] = useState(() => read(COURSE_KEY, defaultCourse));
-  const [institution, setInstitution] = useState(() => read(INSTITUTION_KEY, defaultInstitution));
-  const [brand, setBrand] = useState(defaultBrand);
-  const [brandReady, setBrandReady] = useState(false);
-  const [student, setStudent] = useState({ name: "", cpf: "", startDate: "", endDate: "" });
-  const [certs, setCerts] = useState([]);
-
-  const hours = useMemo(() => totalHours(course), [course]);
-  const minimumDays = useMemo(() => minimumDaysForHours(hours), [hours]);
-
-  useEffect(() => {
-    let mounted = true;
-    (async () => {
-      const stored = await getBrandAssets();
-      const legacy = read(BRAND_KEY, defaultBrand);
-      const merged = {
-        enatLogo: stored.enatLogo || legacy.enatLogo || "",
-        neuroLogo: stored.neuroLogo || legacy.neuroLogo || "",
-      };
-      if (mounted) {
-        setBrand(merged);
-        setBrandReady(true);
-      }
-      if (merged.enatLogo || merged.neuroLogo) await setBrandAssets(merged).catch(() => {});
-    })();
-    return () => { mounted = false; };
-  }, []);
-
-  const refresh = async () => {
-    try {
-      setCerts((await listCertificates()).certificates || []);
-    } catch (error) {
-      setMessage(error.message);
-    }
-  };
-
-  useEffect(() => {
-    getSession().then((current) => {
-      setSession(current);
-      if (current) refresh();
-    }).catch((error) => setMessage(error.message));
-  }, []);
-
-  const updateBrand = async (key, value) => {
-    const next = { ...brand, [key]: value };
-    setBrand(next);
-    try {
-      await setBrandAssets(next);
-      save(BRAND_KEY, next);
-    } catch {
-      try { save(BRAND_KEY, next); } catch {}
-    }
-  };
-
-  const removeBrand = async (key) => {
-    const next = { ...brand, [key]: "" };
-    setBrand(next);
-    try { await setBrandAssets(next); } catch {}
-    try { save(BRAND_KEY, next); } catch {}
-    setMessage(`${key === "enatLogo" ? "Logo ENAT" : "Logo Neurociência Aplicada ao Trânsito"} excluída.`);
-  };
-
-  const auth = async (event) => {
-    event.preventDefault();
-    setBusy(true);
-    setMessage("");
-    try {
-      const current = authMode === "login" ? await signIn(email, password) : await signUp(email, password);
-      setSession(current);
-      setMessage(authMode === "login" ? "Acesso autorizado." : "Conta criada. Se o projeto exigir confirmação de e-mail, confirme-a antes de entrar.");
-      if (current) refresh();
-    } catch (error) {
-      setMessage(error.message);
-    } finally {
-      setBusy(false);
-    }
-  };
-
-  const makePdf = async (certificate) => {
-    const doc = new jsPDF({ orientation: "landscape", unit: "mm", format: "a4" });
-    const W = 297;
-    const H = 210;
-    const startDate = certificate.start_date || certificate.completion_date;
-    const endDate = certificate.end_date || certificate.completion_date;
-    const periodText = `compreendida entre ${formatDateBR(startDate)} e ${formatDateBR(endDate)}`;
-
-    drawPageFrame(doc, W, H);
-    await addWatermark(doc, brand.neuroLogo, W, H);
-    doc.setTextColor(210, 240, 250);
-    doc.setFont("helvetica", "bold");
-    doc.setFontSize(28);
-    doc.text("CERTIFICADO", W / 2, 38, { align: "center" });
-    doc.setFontSize(11);
-    doc.setFont("helvetica", "normal");
-    doc.text(certificate.course_nature || course.nature, W / 2, 48, { align: "center" });
-    await addImageContain(doc, brand.enatLogo, 18, 16, 36, 36);
-    await addImageContain(doc, brand.neuroLogo, 243, 16, 36, 36);
-    doc.setFontSize(18);
-    doc.setFont("helvetica", "bold");
-    doc.text(certificate.student_name, W / 2, 76, { align: "center" });
-    doc.setFont("helvetica", "normal");
-    doc.setFontSize(11);
-    doc.text("Certificamos que o(a) participante acima identificado(a)", W / 2, 89, { align: "center" });
-    doc.text("concluiu com êxito o curso de", W / 2, 98, { align: "center" });
-    doc.setFont("helvetica", "bold");
-    doc.setFontSize(14);
-    doc.text(certificate.course_name, W / 2, 109, { align: "center", maxWidth: 235 });
-    doc.setFont("helvetica", "normal");
-    doc.setFontSize(10);
-    doc.text(`Formação baseada em Neurociência Aplicada ao Trânsito, com carga horária de ${certificate.hours} horas, ${periodText}.`, W / 2, 121, { align: "center", maxWidth: 235 });
-    doc.setFontSize(9);
-    doc.text(`Instituição: ${certificate.institution_name || institution.name}`, 20, 140);
-    if (certificate.institution_cnpj) doc.text(`CNPJ: ${maskCnpj(certificate.institution_cnpj)}`, 20, 147);
-    doc.text(`Responsável: ${certificate.responsible || course.responsible} — ${certificate.responsible_role || course.responsibleRole}`, 20, 154);
-    doc.text(`Registro: ${certificate.code}`, 20, 161);
-    const qr = await QRCode.toDataURL(`${window.location.origin}/validar/${certificate.code}`, { margin: 1, width: 180 });
-    doc.addImage(qr, "PNG", 245, 145, 30, 30);
-    doc.setFontSize(7);
-    doc.text("Validação pública por QR Code", 260, 179, { align: "center" });
-    doc.setDrawColor(160, 190, 200);
-    doc.line(105, 174, 195, 174);
-    doc.setFontSize(9);
-    doc.text(certificate.responsible || course.responsible, 150, 181, { align: "center" });
-    doc.setFontSize(7);
-    doc.text("Curso livre de formação, capacitação, aperfeiçoamento ou atualização. Este certificado não corresponde a diploma de graduação nem a certificado de pós-graduação lato sensu ou título acadêmico reconhecido pelo MEC.", W / 2, 195, { align: "center", maxWidth: 250 });
-
-    doc.addPage();
-    drawPageFrame(doc, W, H);
-    await addWatermark(doc, brand.neuroLogo, W, H);
-    doc.setTextColor(210, 240, 250);
-    doc.setFont("helvetica", "bold");
-    doc.setFontSize(22);
-    doc.text("CONTEÚDO PROGRAMÁTICO", W / 2, 32, { align: "center" });
-    doc.setFontSize(10);
-    doc.setFont("helvetica", "normal");
-    doc.text(certificate.course_name, W / 2, 41, { align: "center" });
-    await addImageContain(doc, brand.enatLogo, 20, 16, 30, 30);
-    await addImageContain(doc, brand.neuroLogo, 247, 16, 30, 30);
-    doc.setFont("helvetica", "bold");
-    doc.setFontSize(11);
-    doc.text("Componente curricular", 22, 56);
-    doc.text("Carga horária", 214, 56);
-    doc.setDrawColor(70, 190, 240);
-    doc.line(20, 60, 277, 60);
-
-    const subjects = Array.isArray(certificate.subjects) && certificate.subjects.length
-      ? certificate.subjects
-      : course.subjects.map(([name, subjectHours]) => ({ name, hours: Number(subjectHours) }));
-    let y = 70;
-    doc.setFont("helvetica", "normal");
-    doc.setFontSize(10);
-    subjects.forEach((subject, index) => {
-      const name = typeof subject === "string" ? subject : subject.name || subject[0] || "";
-      const subjectHours = Number(subject.hours ?? subject[1] ?? 0);
-      if (index % 2 === 0) {
-        doc.setFillColor(15, 28, 42);
-        doc.rect(20, y - 7, 257, 9, "F");
-      }
-      doc.setTextColor(220, 235, 242);
-      doc.text(String(name), 22, y, { maxWidth: 185 });
-      doc.text(`${subjectHours} h`, 214, y);
-      y += 11;
-    });
-
-    doc.setDrawColor(70, 190, 240);
-    doc.line(20, y - 5, 277, y - 5);
-    doc.setFont("helvetica", "bold");
-    doc.setFontSize(12);
-    doc.text(`Carga horária total: ${certificate.hours} horas`, 22, y + 7);
-    doc.setFont("helvetica", "normal");
-    doc.setFontSize(8);
-    doc.text(`Aluno: ${certificate.student_name} • Registro: ${certificate.code} • Modalidade: ${certificate.modality || course.modality}`, 22, y + 18, { maxWidth: 245 });
-
-    const legalY = Math.min(y + 29, 157);
-    doc.setDrawColor(70, 190, 240);
-    doc.rect(20, legalY, 257, 30);
-    doc.setFont("helvetica", "bold");
-    doc.setFontSize(9);
-    doc.text("INFORMAÇÕES LEGAIS — CURSO LIVRE", 24, legalY + 6);
-    doc.setFont("helvetica", "normal");
-    doc.setFontSize(7);
-    const legalText = "Conforme orientação do Ministério da Educação — MEC/SERES, cursos livres caracterizam-se pela ausência de atos autorizativos por parte do Poder Público. Este certificado comprova a participação/conclusão e a carga horária do curso realizado, mas não corresponde a diploma de curso superior, não confere grau acadêmico e não constitui certificado de conclusão de pós-graduação lato sensu. Sua aceitação para fins profissionais, institucionais, concursos, processos seletivos ou aproveitamento de estudos depende das normas aplicáveis pela instituição ou órgão destinatário.";
-    doc.text(legalText, 24, legalY + 12, { maxWidth: 248, lineHeightFactor: 1.35 });
-    doc.setFontSize(6.5);
-    doc.text("Referência: Ministério da Educação — MEC/SERES — Perguntas Frequentes: Cursos Livres.", 24, legalY + 26, { maxWidth: 248 });
-    doc.setFontSize(6.5);
-    doc.text("Documento integrante do certificado. Os componentes curriculares e respectivas cargas horárias correspondem à configuração registrada pela instituição emissora.", W / 2, 198, { align: "center", maxWidth: 250 });
-
-    doc.save(`${certificate.code}_${certificate.student_name.replace(/[^a-z0-9]+/gi, "_")}.pdf`);
-  };
-
-  const emit = async () => {
-    if (!student.name.trim() || onlyDigits(student.cpf).length !== 11) {
-      setMessage("Informe nome completo e CPF válido.");
-      return;
-    }
-    if (!student.startDate || !student.endDate) {
-      setMessage("Informe obrigatoriamente a data de início e a data de fim do curso.");
-      return;
-    }
-    const start = new Date(`${student.startDate}T00:00:00`);
-    const end = new Date(`${student.endDate}T00:00:00`);
-    const durationDays = Math.floor((end.getTime() - start.getTime()) / 86400000) + 1;
-    if (durationDays < minimumDays) {
-      const weeks = Math.ceil(hours / 24);
-      setMessage(`Período insuficiente. Para ${hours} horas, o certificado exige no mínimo ${minimumDays} dias (${weeks} semanas). O período informado possui ${durationDays} dias.`);
-      return;
-    }
-    if (!brandReady) {
-      setMessage("Aguarde o carregamento das logos antes de emitir o certificado.");
-      return;
-    }
-    setBusy(true);
-    setMessage("");
-    try {
-      const cpf_hash = await hashCpf(student.cpf);
-      const response = await issueCertificate({
-        student_name: student.name.trim(),
-        cpf_hash,
-        course_name: course.name,
-        course_nature: course.nature,
-        hours,
-        subjects: course.subjects.map(([name, subjectHours]) => ({ name, hours: Number(subjectHours) })),
-        start_date: student.startDate,
-        end_date: student.endDate,
-        completion_date: student.endDate,
-        responsible: course.responsible,
-        institution_name: institution.name,
-        institution_cnpj: onlyDigits(institution.cnpj),
-        responsible_role: course.responsibleRole,
-        modality: course.modality,
-      });
-      const certificate = response.certificate;
-      await makePdf(certificate);
-      setMessage(`Certificado ${certificate.code} emitido com sucesso.`);
-      setStudent({ name: "", cpf: "", startDate: "", endDate: "" });
-      refresh();
-    } catch (error) {
-      setMessage(error.message);
-    } finally {
-      setBusy(false);
-    }
-  };
-
-  const cancel = async (certificate) => {
-    try {
-      await cancelCertificate(certificate.code, certificate.status === "valid" ? "cancelled" : "valid");
-      refresh();
-    } catch (error) {
-      setMessage(error.message);
-    }
-  };
-
-  if (!session) {
-    return (
-      <main className="issuer">
-        <section className="issuer-card auth-card">
-          <div className="issuer-brand">ENAT HSI</div>
-          <h1>Emissor de Certificados</h1>
-          <p>Acesso administrativo da Central ENAT HSI</p>
-          <form onSubmit={auth}>
-            <input type="email" placeholder="E-mail" value={email} onChange={(event) => setEmail(event.target.value)} required />
-            <input type="password" placeholder="Senha" value={password} onChange={(event) => setPassword(event.target.value)} required />
-            <button disabled={busy}>{busy ? "Processando…" : authMode === "login" ? "Entrar no emissor" : "Criar acesso"}</button>
-          </form>
-          <button className="link-btn" onClick={() => setAuthMode(authMode === "login" ? "signup" : "login")}>
-            {authMode === "login" ? "Ainda não tenho acesso" : "Já tenho acesso"}
-          </button>
-          {message && <div className="issuer-message">{message}</div>}
-        </section>
-      </main>
-    );
-  }
-
-  const updateCourseField = (field, value) => {
-    const next = { ...course, [field]: value };
-    setCourse(next);
-    save(COURSE_KEY, next);
-  };
-
-  const updateSubject = (index, field, value) => {
-    const nextSubjects = course.subjects.map((subject, subjectIndex) => {
-      if (subjectIndex !== index) return subject;
-      return field === "name" ? [value, subject[1]] : [subject[0], Number(value || 0)];
-    });
-    const next = { ...course, subjects: nextSubjects };
-    setCourse(next);
-    save(COURSE_KEY, next);
-  };
-
-  const addSubject = () => {
-    const next = { ...course, subjects: [...course.subjects, ["Novo componente curricular", 0]] };
-    setCourse(next);
-    save(COURSE_KEY, next);
-  };
-
-  const removeSubject = (index) => {
-    const next = { ...course, subjects: course.subjects.filter((_, itemIndex) => itemIndex !== index) };
-    setCourse(next);
-    save(COURSE_KEY, next);
-  };
-
-  return (
-    <main className="issuer">
-      <header className="issuer-head">
-        <div>
-          <span>ENAT HSI</span>
-          <h1>Emissor de Certificados</h1>
-          <p>Emissão, configuração institucional e validação documental.</p>
-        </div>
-        <button className="secondary" onClick={() => { signOut(); setSession(null); }}>Sair</button>
-      </header>
-
-      <nav className="issuer-tabs">
-        <button className={tab === "emitir" ? "active" : ""} onClick={() => setTab("emitir")}>Emitir</button>
-        <button className={tab === "curso" ? "active" : ""} onClick={() => setTab("curso")}>Curso e instituição</button>
-        <button className={tab === "certificados" ? "active" : ""} onClick={() => setTab("certificados")}>Certificados ({certs.length})</button>
-      </nav>
-
-      {message && <div className="issuer-message">{message}</div>}
-
-      {tab === "emitir" && (
-        <section className="issuer-grid">
-          <article className="issuer-card">
-            <h2>Novo certificado</h2>
-            <label>Nome completo<input value={student.name} onChange={(event) => setStudent({ ...student, name: event.target.value })} /></label>
-            <label>CPF<input value={maskCpf(student.cpf)} onChange={(event) => setStudent({ ...student, cpf: event.target.value })} /></label>
-            <label>Data de início<input type="date" value={student.startDate} onChange={(event) => setStudent({ ...student, startDate: event.target.value })} required /></label>
-            <label>Data de fim<input type="date" value={student.endDate} min={student.startDate || undefined} onChange={(event) => setStudent({ ...student, endDate: event.target.value })} required /></label>
-            <div className="summary">
-              <b>{course.name}</b>
-              <span>{hours} horas • período mínimo: {minimumDays} dias ({Math.ceil(hours / 24)} semanas)</span>
-              <span>{institution.name}</span>
-            </div>
-            <button onClick={emit} disabled={busy || !brandReady}>{busy ? "Emitindo…" : !brandReady ? "Carregando identidade…" : "Emitir e gerar PDF"}</button>
-          </article>
-
-          <article className="issuer-card">
-            <h2>Identidade do certificado</h2>
-            <div className="logo-row">
-              {brand.enatLogo ? <img src={brand.enatLogo} alt="Logo ENAT" /> : <div className="logo-placeholder">ENAT</div>}
-              {brand.neuroLogo ? <img src={brand.neuroLogo} alt="Neurociência Aplicada ao Trânsito" /> : <div className="logo-placeholder">Neurociência</div>}
-            </div>
-            <p className="hint">As logos ficam armazenadas no navegador e permanecem após atualizar a página. Elas só são removidas quando você clicar em <b>Excluir logo</b>.</p>
-            <label>Logo ENAT<input type="file" accept="image/png,image/jpeg" onChange={(event) => fileToData(event.target.files?.[0], (value) => updateBrand("enatLogo", value))} /></label>
-            {brand.enatLogo && <button type="button" className="secondary" onClick={() => removeBrand("enatLogo")}>Excluir logo ENAT</button>}
-            <label>Logo Neurociência Aplicada ao Trânsito<input type="file" accept="image/png,image/jpeg" onChange={(event) => fileToData(event.target.files?.[0], (value) => updateBrand("neuroLogo", value))} /></label>
-            {brand.neuroLogo && <button type="button" className="secondary" onClick={() => removeBrand("neuroLogo")}>Excluir logo Neurociência</button>}
-          </article>
-        </section>
-      )}
-
-      {tab === "curso" && (
-        <section className="issuer-grid">
-          <article className="issuer-card">
-            <h2>Curso</h2>
-            <label>Nome<input value={course.name} onChange={(event) => updateCourseField("name", event.target.value)} /></label>
-            <label>Natureza<input value={course.nature} onChange={(event) => updateCourseField("nature", event.target.value)} /></label>
-            <label>Modalidade<input value={course.modality} onChange={(event) => updateCourseField("modality", event.target.value)} /></label>
-            <label>Responsável<input value={course.responsible} onChange={(event) => updateCourseField("responsible", event.target.value)} /></label>
-            <label>Função do responsável<input value={course.responsibleRole} onChange={(event) => updateCourseField("responsibleRole", event.target.value)} /></label>
-            <div className="summary"><b>Carga horária total</b><span>{hours} horas • período mínimo de {minimumDays} dias ({Math.ceil(hours / 24)} semanas)</span></div>
-          </article>
-          <article className="issuer-card">
-            <h2>Componentes curriculares</h2>
-            {course.subjects.map((subject, index) => (
-              <div key={`${index}-${subject[0]}`} className="subject-row">
-                <input value={subject[0]} onChange={(event) => updateSubject(index, "name", event.target.value)} />
-                <input type="number" min="0" value={subject[1]} onChange={(event) => updateSubject(index, "hours", event.target.value)} />
-                <button type="button" className="secondary" onClick={() => removeSubject(index)}>Excluir</button>
-              </div>
-            ))}
-            <button type="button" onClick={addSubject}>Adicionar componente</button>
-          </article>
-          <article className="issuer-card">
-            <h2>Instituição</h2>
-            <label>Nome<input value={institution.name} onChange={(event) => { const next = { ...institution, name: event.target.value }; setInstitution(next); save(INSTITUTION_KEY, next); }} /></label>
-            <label>CNPJ<input value={maskCnpj(institution.cnpj)} onChange={(event) => { const next = { ...institution, cnpj: event.target.value }; setInstitution(next); save(INSTITUTION_KEY, next); }} /></label>
-          </article>
-        </section>
-      )}
-
-      {tab === "certificados" && (
-        <section className="issuer-card">
-          <h2>Certificados emitidos</h2>
-          {!certs.length && <p>Nenhum certificado encontrado.</p>}
-          {certs.map((certificate) => (
-            <div key={certificate.id || certificate.code} className="certificate-row">
-              <div>
-                <b>{certificate.code}</b>
-                <span>{certificate.student_name} • {certificate.course_name} • {certificate.hours}h • {certificate.status}</span>
-              </div>
-              <div>
-                <button onClick={() => makePdf(certificate)}>📄 Baixar PDF</button>
-                <button className="secondary" onClick={() => cancel(certificate)}>{certificate.status === "valid" ? "Cancelar" : "Revalidar"}</button>
-              </div>
-            </div>
-          ))}
-        </section>
-      )}
-    </main>
-  );
+export function EmissorCertificadosAdmin(){
+ const [session,setSession]=useState(null),[authMode,setAuthMode]=useState("login"),[email,setEmail]=useState(""),[password,setPassword]=useState(""),[busy,setBusy]=useState(false),[message,setMessage]=useState(""),[tab,setTab]=useState("emitir");
+ const [course,setCourse]=useState(courseFromStorage),[institution,setInstitution]=useState(()=>read(INSTITUTION_KEY,defaultInstitution)),[brand,setBrand]=useState(defaultBrand),[brandReady,setBrandReady]=useState(false),[student,setStudent]=useState({name:"",cpf:"",start:"",end:""}),[certs,setCerts]=useState([]);
+ const [teachers,setTeachers]=useState([]),[teacherForm,setTeacherForm]=useState({name:"",qualification:"Especialista",formation:"",institution:"",registration:""});
+ const hours=useMemo(()=>course.modules.reduce((s,m)=>s+Number(m.hours||0),0),[course]);
+ const requiredDays=useMemo(()=>Math.ceil((hours/24)*7),[hours]);
+ useEffect(()=>{let mounted=true;(async()=>{const stored=await getBrandAssets();const legacy=read(BRAND_KEY,defaultBrand);const merged={enatLogo:stored.enatLogo||legacy.enatLogo||"",neuroLogo:stored.neuroLogo||legacy.neuroLogo||""};if(mounted){setBrand(merged);setBrandReady(true);}})();return()=>{mounted=false;};},[]);
+ const refresh=async()=>{try{setCerts((await listCertificates()).certificates||[]);}catch(e){setMessage(e.message);}};
+ const refreshTeachers=async()=>{try{setTeachers((await listInstructors()).instructors||[]);}catch(e){setMessage(e.message);}};
+ useEffect(()=>{getSession().then(c=>{setSession(c);if(c){refresh();refreshTeachers();}}).catch(e=>setMessage(e.message));},[]);
+ const updateBrand=async(key,value)=>{const next={...brand,[key]:value};setBrand(next);await setBrandAssets(next).catch(()=>{});save(BRAND_KEY,next);};
+ const removeBrand=async(key)=>{const next={...brand,[key]:""};setBrand(next);await setBrandAssets(next).catch(()=>{});save(BRAND_KEY,next);setMessage(`${key==="enatLogo"?"Logo ENAT":"Logo Neurociência Aplicada ao Trânsito"} excluída.`);};
+ const auth=async(e)=>{e.preventDefault();setBusy(true);setMessage("");try{const current=authMode==="login"?await signIn(email,password):await signUp(email,password);setSession(current);setMessage(authMode==="login"?"Acesso autorizado.":"Conta criada. Confirme o e-mail se solicitado.");if(current){refresh();refreshTeachers();}}catch(err){setMessage(err.message);}finally{setBusy(false);}};
+ const updateCourse=(next)=>{setCourse(next);save(COURSE_KEY,next);};
+ const updateModule=(mi,next)=>updateCourse({...course,modules:course.modules.map((m,i)=>i===mi?next:m)});
+ const updateLesson=(mi,li,field,value)=>{const m=course.modules[mi];const lessons=m.lessons.map((l,i)=>i===li?{...l,[field]:field==="hours"?Number(value||0):value}:l);updateModule(mi,{...m,lessons});};
+ const addTeacher=async()=>{if(!teacherForm.name.trim()||!teacherForm.formation.trim()){setMessage("Informe nome e formação do professor.");return;}setBusy(true);try{await createInstructor(teacherForm);setTeacherForm({name:"",qualification:"Especialista",formation:"",institution:"",registration:""});await refreshTeachers();setMessage("Professor cadastrado com sucesso.");}catch(e){setMessage(e.message);}finally{setBusy(false);}};
+ const removeTeacher=async(id)=>{try{await deleteInstructor(id);await refreshTeachers();setCourse((current)=>{const modules=current.modules.map(m=>({...m,lessons:m.lessons.map(l=>l.teacherId===id?{...l,teacherId:""}:l)}));const next={...current,modules};save(COURSE_KEY,next);return next;});}catch(e){setMessage(e.message);}};
+ const teacherById=(id)=>teachers.find(t=>t.id===id);
+ const assignedSubjects=()=>course.modules.map((m)=>({...m,lessons:m.lessons.map((l)=>{const t=teacherById(l.teacherId);return {...l,teacher:t?{id:t.id,name:t.name,qualification:t.qualification,formation:t.formation,institution:t.institution,registration:t.registration}:null};})}));
+ const validatePeriod=()=>{if(!student.start||!student.end)return `Informe a data de início e a data de fim. Para ${hours} horas, o período mínimo é de ${requiredDays} dias (${Math.ceil(hours/24)} semanas).`;const days=daysBetweenInclusive(student.start,student.end);if(days<requiredDays)return `Período insuficiente: ${hours} horas exigem no mínimo ${requiredDays} dias (${Math.ceil(hours/24)} semanas). O período informado tem ${days} dias.`;return "";};
+ const makePdf=async(certificate)=>{const doc=new jsPDF({orientation:"landscape",unit:"mm",format:"a4"}),W=297,H=210;drawPageFrame(doc,W,H);await addWatermark(doc,brand.neuroLogo,W,H);doc.setTextColor(210,240,250);doc.setFont("helvetica","bold");doc.setFontSize(28);doc.text("CERTIFICADO",W/2,38,{align:"center"});doc.setFontSize(11);doc.setFont("helvetica","normal");doc.text(certificate.course_nature||course.nature,W/2,48,{align:"center"});await addImageContain(doc,brand.enatLogo,18,16,36,36);await addImageContain(doc,brand.neuroLogo,243,16,36,36);doc.setFontSize(18);doc.setFont("helvetica","bold");doc.text(certificate.student_name,W/2,76,{align:"center"});doc.setFont("helvetica","normal");doc.setFontSize(10.5);const statement=`Certificamos que o(a) participante acima identificado(a) concluiu com êxito o curso de ${certificate.course_name}, baseado em Neurociência Aplicada ao Trânsito, com carga horária de ${certificate.hours} horas, compreendida entre ${formatDate(certificate.start_date)} e ${formatDate(certificate.end_date)}.`;doc.text(statement,W/2,90,{align:"center",maxWidth:235,lineHeightFactor:1.45});doc.setFontSize(10);doc.text(`${certificate.hours} horas • ${certificate.modality||course.modality}`,W/2,113,{align:"center"});doc.setFontSize(9);doc.text(`Instituição: ${certificate.institution_name||institution.name}`,20,140);if(certificate.institution_cnpj)doc.text(`CNPJ: ${maskCnpj(certificate.institution_cnpj)}`,20,147);doc.text(`Responsável: ${certificate.responsible||course.responsible} — ${certificate.responsible_role||course.responsibleRole}`,20,154);doc.text(`Registro: ${certificate.code}`,20,161);const qr=await QRCode.toDataURL(`${window.location.origin}/validar/${certificate.code}`,{margin:1,width:180});doc.addImage(qr,"PNG",245,145,30,30);doc.setFontSize(7);doc.text("Validação pública por QR Code",260,179,{align:"center"});doc.setDrawColor(160,190,200);doc.line(105,174,195,174);doc.setFontSize(9);doc.text(certificate.responsible||course.responsible,150,181,{align:"center"});doc.setFontSize(7);doc.text("Curso livre de formação, capacitação ou atualização. Este certificado não corresponde a diploma de graduação nem a certificado de pós-graduação lato sensu ou título acadêmico reconhecido pelo MEC.",W/2,195,{align:"center",maxWidth:250});
+ doc.addPage();drawPageFrame(doc,W,H);await addWatermark(doc,brand.neuroLogo,W,H);doc.setTextColor(210,240,250);doc.setFont("helvetica","bold");doc.setFontSize(20);doc.text("CONTEÚDO PROGRAMÁTICO E CORPO DOCENTE",W/2,30,{align:"center"});doc.setFont("helvetica","normal");doc.setFontSize(8);doc.text(`${certificate.course_name} • ${certificate.hours} horas • ${formatDate(certificate.start_date)} a ${formatDate(certificate.end_date)}`,W/2,39,{align:"center"});await addImageContain(doc,brand.enatLogo,18,15,28,28);await addImageContain(doc,brand.neuroLogo,251,15,28,28);
+ const modules=Array.isArray(certificate.subjects)?certificate.subjects:assignedSubjects();const cols=[{x:20,w:124,items:modules.slice(0,3)},{x:153,w:124,items:modules.slice(3)}];cols.forEach((col)=>{let y=51;col.items.forEach((m,mi)=>{doc.setFillColor(15,28,42);doc.rect(col.x,y-5,col.w,5,"F");doc.setFont("helvetica","bold");doc.setFontSize(7.5);doc.setTextColor(210,240,250);doc.text(`${m.title} — ${m.hours} h`,col.x+2,y,{maxWidth:col.w-4});y+=7;doc.setFont("helvetica","normal");doc.setFontSize(6.5);(m.lessons||[]).forEach((l,li)=>{const t=l.teacher||null;const line=`${li+1}. ${l.name} — ${l.hours}h`;doc.setTextColor(220,235,242);doc.text(line,col.x+3,y,{maxWidth:col.w-6});y+=4.3;if(t){doc.setFontSize(5.8);doc.text(`Docente: ${t.name} — ${t.qualification}; ${t.formation}`,col.x+7,y,{maxWidth:col.w-10});y+=4.3;}});y+=3;});});
+ const legalY=169;doc.setDrawColor(70,190,240);doc.rect(20,legalY,257,26);doc.setFont("helvetica","bold");doc.setFontSize(8);doc.text("INFORMAÇÕES LEGAIS — CURSO LIVRE",24,legalY+5);doc.setFont("helvetica","normal");doc.setFontSize(6.2);doc.text("Conforme orientação do MEC/SERES, cursos livres caracterizam-se pela ausência de atos autorizativos por parte do Poder Público. Este certificado comprova a conclusão e a carga horária do curso, não correspondendo a diploma de curso superior, grau acadêmico ou certificado de pós-graduação lato sensu. Sua aceitação para fins profissionais, institucionais, concursos, processos seletivos ou aproveitamento de estudos depende das normas aplicáveis pela instituição ou órgão destinatário.",24,legalY+10,{maxWidth:248,lineHeightFactor:1.3});doc.setFontSize(5.8);doc.text("Referência: Ministério da Educação — MEC/SERES — Perguntas Frequentes: Cursos Livres.",24,legalY+22,{maxWidth:248});doc.setFontSize(5.8);doc.text("Documento integrante do certificado. Componentes curriculares, docentes e cargas horárias correspondem aos registros da instituição emissora.",W/2,199,{align:"center",maxWidth:250});doc.save(`${certificate.code}_${certificate.student_name.replace(/[^a-z0-9]+/gi,"_")}.pdf`);};
+ const emit=async()=>{if(!student.name.trim()||onlyDigits(student.cpf).length!==11){setMessage("Informe nome completo e CPF válido.");return;}const periodError=validatePeriod();if(periodError){setMessage(periodError);return;}if(!brandReady){setMessage("Aguarde o carregamento das logos.");return;}const missing=[];course.modules.forEach((m,mi)=>m.lessons.forEach((l,li)=>{if(!l.teacherId)missing.push(`M${mi+1} Aula ${li+1}`);}));if(missing.length){setMessage(`Não é possível emitir: cadastre e atribua os docentes a todas as aulas. Pendências: ${missing.slice(0,4).join(", ")}${missing.length>4?"…":""}`);return;}setBusy(true);setMessage("");try{const response=await issueCertificate({student_name:student.name.trim(),cpf_hash:await hashCpf(student.cpf),course_name:course.name,course_nature:course.nature,hours,subjects:assignedSubjects(),completion_date:student.end,start_date:student.start,end_date:student.end,responsible:course.responsible,institution_name:institution.name,institution_cnpj:onlyDigits(institution.cnpj),responsible_role:course.responsibleRole,modality:course.modality});const certificate=response.certificate;await makePdf(certificate);setMessage(`Certificado ${certificate.code} emitido com sucesso.`);setStudent({name:"",cpf:"",start:"",end:""});refresh();}catch(e){setMessage(e.message);}finally{setBusy(false);}};
+ const cancel=async(c)=>{try{await cancelCertificate(c.code,c.status==="valid"?"cancelled":"valid");refresh();}catch(e){setMessage(e.message);}};
+ if(!session)return <main className="issuer"><section className="issuer-card auth-card"><div className="issuer-brand">ENAT HSI</div><h1>Emissor de Certificados</h1><p>Acesso administrativo da Central ENAT HSI</p><form onSubmit={auth}><input type="email" placeholder="E-mail" value={email} onChange={e=>setEmail(e.target.value)} required/><input type="password" placeholder="Senha" value={password} onChange={e=>setPassword(e.target.value)} required/><button disabled={busy}>{busy?"Processando…":authMode==="login"?"Entrar no emissor":"Criar acesso"}</button></form><button className="link-btn" onClick={()=>setAuthMode(authMode==="login"?"signup":"login")}>{authMode==="login"?"Ainda não tenho acesso":"Já tenho acesso"}</button>{message&&<div className="issuer-message">{message}</div>}</section></main>;
+ const updateCourseField=(field,value)=>updateCourse({...course,[field]:value});
+ return <main className="issuer"><header className="issuer-head"><div><span>ENAT HSI</span><h1>Emissor de Certificados</h1><p>Emissão, configuração curricular, corpo docente e validação documental.</p></div><button className="secondary" onClick={()=>{signOut();setSession(null);}}>Sair</button></header>
+ <nav className="issuer-tabs"><button className={tab==="emitir"?"active":""} onClick={()=>setTab("emitir")}>Emitir</button><button className={tab==="curso"?"active":""} onClick={()=>setTab("curso")}>Curso e currículo</button><button className={tab==="docentes"?"active":""} onClick={()=>setTab("docentes")}>Docentes ({teachers.length})</button><button className={tab==="certificados"?"active":""} onClick={()=>setTab("certificados")}>Certificados ({certs.length})</button></nav>{message&&<div className="issuer-message">{message}</div>}
+ {tab==="emitir"&&<section className="issuer-grid"><article className="issuer-card"><h2>Novo certificado</h2><label>Nome completo<input value={student.name} onChange={e=>setStudent({...student,name:e.target.value})}/></label><label>CPF<input value={maskCpf(student.cpf)} onChange={e=>setStudent({...student,cpf:e.target.value})}/></label><div className="issuer-grid"><label>Data de início<input type="date" value={student.start} onChange={e=>setStudent({...student,start:e.target.value})}/></label><label>Data de fim<input type="date" value={student.end} min={student.start||undefined} onChange={e=>setStudent({...student,end:e.target.value})}/></label></div><div className="summary"><b>{course.name}</b><span>{hours} horas • mínimo {requiredDays} dias ({Math.ceil(hours/24)} semanas)</span><span>{institution.name}</span></div><button onClick={emit} disabled={busy||!brandReady}>{busy?"Emitindo…":"Emitir e gerar PDF"}</button></article><article className="issuer-card"><h2>Identidade do certificado</h2><div className="logo-row">{brand.enatLogo?<img src={brand.enatLogo} alt="Logo ENAT"/>:<div className="logo-placeholder">ENAT</div>}{brand.neuroLogo?<img src={brand.neuroLogo} alt="Neurociência Aplicada ao Trânsito"/>:<div className="logo-placeholder">Neurociência</div>}</div><p className="hint">As logos permanecem armazenadas e só são removidas pelo comando de exclusão.</p><label>Logo ENAT<input type="file" accept="image/png,image/jpeg" onChange={e=>fileToData(e.target.files?.[0],v=>updateBrand("enatLogo",v))}/></label>{brand.enatLogo&&<button type="button" className="secondary" onClick={()=>removeBrand("enatLogo")}>Excluir logo ENAT</button>}<label>Logo Neurociência Aplicada ao Trânsito<input type="file" accept="image/png,image/jpeg" onChange={e=>fileToData(e.target.files?.[0],v=>updateBrand("neuroLogo",v))}/></label>{brand.neuroLogo&&<button type="button" className="secondary" onClick={()=>removeBrand("neuroLogo")}>Excluir logo Neurociência</button>}</article></section>}
+ {tab==="curso"&&<section className="issuer-grid"><article className="issuer-card"><h2>Curso</h2><label>Nome<input value={course.name} onChange={e=>updateCourseField("name",e.target.value)}/></label><label>Natureza<input value={course.nature} onChange={e=>updateCourseField("nature",e.target.value)}/></label><label>Modalidade<input value={course.modality} onChange={e=>updateCourseField("modality",e.target.value)}/></label><label>Responsável<input value={course.responsible} onChange={e=>updateCourseField("responsible",e.target.value)}/></label><label>Função do responsável<input value={course.responsibleRole} onChange={e=>updateCourseField("responsibleRole",e.target.value)}/></label><div className="summary"><b>Carga horária total</b><span>{hours} horas • duração mínima {requiredDays} dias</span></div></article><article className="issuer-card"><h2>Módulos, aulas e docentes</h2>{course.modules.map((m,mi)=><div key={mi} className="summary" style={{marginBottom:12}}><b>{m.title}</b><span>{m.hours} horas</span>{m.lessons.map((l,li)=><div key={li} style={{marginTop:6}}><input value={l.name} onChange={e=>updateLesson(mi,li,"name",e.target.value)}/><div className="issuer-grid"><input type="number" min="1" value={l.hours} onChange={e=>updateLesson(mi,li,"hours",e.target.value)}/><select value={l.teacherId} onChange={e=>updateLesson(mi,li,"teacherId",e.target.value)}><option value="">Selecionar docente</option>{teachers.map(t=><option key={t.id} value={t.id}>{t.name} — {t.qualification}</option>)}</select></div></div>)}</div>)}</article><article className="issuer-card"><h2>Instituição</h2><label>Nome<input value={institution.name} onChange={e=>{const n={...institution,name:e.target.value};setInstitution(n);save(INSTITUTION_KEY,n);}}/></label><label>CNPJ<input value={maskCnpj(institution.cnpj)} onChange={e=>{const n={...institution,cnpj:e.target.value};setInstitution(n);save(INSTITUTION_KEY,n);}}/></label></article></section>}
+ {tab==="docentes"&&<section className="issuer-grid"><article className="issuer-card"><h2>Cadastrar professor</h2><p className="hint">O docente precisa estar cadastrado antes de ser atribuído a uma aula.</p><label>Nome completo<input value={teacherForm.name} onChange={e=>setTeacherForm({...teacherForm,name:e.target.value})}/></label><label>Titulação<select value={teacherForm.qualification} onChange={e=>setTeacherForm({...teacherForm,qualification:e.target.value})}>{TEACHER_QUALIFICATIONS.map(q=><option key={q}>{q}</option>)}</select></label><label>Área / formação<input placeholder="Ex.: Psicologia, Neurociência, Direito..." value={teacherForm.formation} onChange={e=>setTeacherForm({...teacherForm,formation:e.target.value})}/></label><label>Instituição de formação<input value={teacherForm.institution} onChange={e=>setTeacherForm({...teacherForm,institution:e.target.value})}/></label><label>Registro profissional / acadêmico<input value={teacherForm.registration} onChange={e=>setTeacherForm({...teacherForm,registration:e.target.value})}/></label><button onClick={addTeacher} disabled={busy}>{busy?"Salvando…":"Cadastrar professor"}</button></article><article className="issuer-card"><h2>Corpo docente cadastrado</h2>{!teachers.length&&<p>Nenhum professor cadastrado.</p>}{teachers.map(t=><div key={t.id} className="certificate-row"><div><b>{t.name}</b><span>{t.qualification} • {t.formation}{t.institution?` • ${t.institution}`:""}{t.registration?` • Registro: ${t.registration}`:""}</span></div><button className="secondary" onClick={()=>removeTeacher(t.id)}>Excluir</button></div>)}</article></section>}
+ {tab==="certificados"&&<section className="issuer-card"><h2>Certificados emitidos</h2>{!certs.length&&<p>Nenhum certificado encontrado.</p>}{certs.map(c=><div key={c.id||c.code} className="certificate-row"><div><b>{c.code}</b><span>{c.student_name} • {c.course_name} • {c.hours}h • {c.start_date?`${formatDate(c.start_date)} a ${formatDate(c.end_date)}`:""} • {c.status}</span></div><div><button onClick={()=>makePdf(c)}>📄 Baixar PDF</button><button className="secondary" onClick={()=>cancel(c)}>{c.status==="valid"?"Cancelar":"Revalidar"}</button></div></div>)}</section>}
+ </main>;
 }
