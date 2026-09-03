@@ -39,7 +39,8 @@ export async function signOut() {
 }
 
 export async function issueCertificate(certificate) {
-  return invoke("issue-certificate", certificate);
+  const { code: _clientCode, ...serverIssuedCertificate } = certificate || {};
+  return invoke("issue-certificate", serverIssuedCertificate);
 }
 
 export async function cancelCertificate(code, status) {
