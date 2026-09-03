@@ -60,10 +60,7 @@ export async function listCertificates() {
 }
 
 export async function listInstructors() {
-  const client = requireClient();
-  const { data, error } = await client.functions.invoke("manage-instructors", { method: "GET" });
-  if (error) throw new Error(error.message || "Não foi possível carregar os professores.");
-  return data;
+  return invoke("manage-instructors", { action: "list" });
 }
 
 export async function createInstructor(instructor) {
