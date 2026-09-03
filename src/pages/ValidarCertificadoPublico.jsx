@@ -29,8 +29,13 @@ export function ValidarCertificadoPublico() {
         <p><b>Curso:</b> {c.course_name}</p>
         <p><b>Natureza:</b> {c.course_nature}</p>
         <p><b>Carga horária:</b> {c.hours} horas</p>
+        <p><b>Modalidade:</b> {c.modality || "Não informada"}</p>
         <p><b>Conclusão:</b> {new Date(c.completion_date + "T12:00:00").toLocaleDateString("pt-BR")}</p>
+        <p><b>Instituição:</b> {c.institution_name || "ENAT — Ensino Neuroeducacional Aplicado ao Trânsito"}</p>
+        {c.institution_cnpj && <p><b>CNPJ:</b> {c.institution_cnpj}</p>}
         <p><b>Responsável:</b> {c.responsible}</p>
+        {c.responsible_role && <p><b>Função:</b> {c.responsible_role}</p>}
+        {Array.isArray(c.subjects) && c.subjects.length > 0 && <div style={{marginTop:18}}><b>Conteúdo programático:</b><ul>{c.subjects.map((s,i)=><li key={i}>{s.name} — {s.hours}h</li>)}</ul></div>}
         <p><b>Status:</b> {c.status === "valid" ? "Válido" : "Cancelado"}</p>
       </div> : <p style={{marginTop:20}}>{state.error || "O certificado não foi encontrado na base oficial da Central ENAT HSI."}</p>}
       <p style={{marginTop:28,fontSize:13,opacity:.75}}>Esta consulta é realizada diretamente na base centralizada de validação do sistema de certificados ENAT.</p>
