@@ -18,6 +18,7 @@ import { Certificados } from "./pages/Certificados";
 import { DashboardAluno } from "./pages/DashboardAluno";
 import { RelatorioTurmas } from "./pages/RelatorioTurmas";
 import { IndicacoesInstrutor } from "./pages/IndicacoesInstrutor";
+import { EmissorCertificados, ValidarCertificado } from "./pages/EmissorCertificados";
 
 export default function CentralENATHSI() {
   return (
@@ -39,6 +40,8 @@ export default function CentralENATHSI() {
         <Route path="/testes" element={<TestesAvancados />} />
         <Route path="/testes/:testId" element={<TesteAprofundado />} />
         <Route path="/certificados" element={<Certificados />} />
+        <Route path="/emissor" element={<EmissorCertificados />} />
+        <Route path="/validar/:code" element={<ValidarCertificado />} />
         <Route path="/dashboard" element={<DashboardAluno />} />
         <Route path="/relatorio-turmas" element={<RelatorioTurmas />} />
         <Route path="/indicacoes" element={<IndicacoesInstrutor />} />
