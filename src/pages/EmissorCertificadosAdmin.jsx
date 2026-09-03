@@ -174,15 +174,6 @@ async function setBrandAssets(assets) {
   });
 }
 
-async function hashAndStoreBrand(brand) {
-  try {
-    await setBrandAssets(brand);
-  } catch {
-    // Fallback for older browsers: keep the previous localStorage behavior.
-    save(BRAND_KEY, brand);
-  }
-}
-
 function fileToData(file, setter) {
   if (!file) return;
   const reader = new FileReader();
@@ -245,7 +236,7 @@ export function EmissorCertificadosAdmin() {
     setBrand(next);
     try {
       await setBrandAssets(next);
-      save(BRAND_KEY, { enatLogo: key === "enatLogo" ? value : next.enatLogo, neuroLogo: key === "neuroLogo" ? value : next.neuroLogo });
+      save(BRAND_KEY, next);
     } catch {
       try { save(BRAND_KEY, next); } catch {}
     }
@@ -256,7 +247,7 @@ export function EmissorCertificadosAdmin() {
     setBrand(next);
     try { await setBrandAssets(next); } catch {}
     try { save(BRAND_KEY, next); } catch {}
-    setMessage(`${key === "enatLogo" ? "Logo ENAT" : "Logo Neurociência Aplicada ao Trânsito"} excluída. A exclusão foi solicitada manualmente.`);
+    setMessage(`${key === "enatLogo" ? "Logo ENAT" : "Logo Neurociência Aplicada ao Trânsito"} excluída.`);
   };
 
   const auth = async (event) => {
@@ -296,13 +287,19 @@ export function EmissorCertificadosAdmin() {
     doc.text(certificate.student_name, W / 2, 78, { align: "center" });
     doc.setFont("helvetica", "normal");
     doc.setFontSize(12);
-    doc.text(`Concluiu o curso ${certificate.course_name}`, W / 2, 91, { align: "center" });
-    doc.text(`${certificate.hours} horas • ${certificate.modality || course.modality} • conclusão em ${new Date(certificate.completion_date + "T12:00:00").toLocaleDateString("pt-BR")}`, W / 2, 101, { align: "center" });
-    doc.setFontSize(10);
-    doc.text(`Instituição: ${certificate.institution_name || institution.name}`, 20, 128);
-    if (certificate.institution_cnpj) doc.text(`CNPJ: ${maskCnpj(certificate.institution_cnpj)}`, 20, 136);
-    doc.text(`Responsável: ${certificate.responsible || course.responsible} — ${certificate.responsible_role || course.responsibleRole}`, 20, 144);
-    doc.text(`Registro: ${certificate.code}`, 20, 152);
+    doc.text("Esta conquista representa dedicação, conhecimento e compromisso com uma mobilidade mais humana e segura.", W / 2, 91, { align: "center", maxWidth: 235 });
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(13);
+    doc.text("PARABÉNS POR ESTA CONQUISTA!", W / 2, 105, { align: "center" });
+    doc.setFont("helvetica", "normal");
+    doc.setFontSize(11);
+    doc.text(`Formação concluída: ${certificate.course_name}`, W / 2, 116, { align: "center", maxWidth: 235 });
+    doc.text(`${certificate.hours} horas • ${certificate.modality || course.modality} • conclusão em ${new Date(certificate.completion_date + "T12:00:00").toLocaleDateString("pt-BR")}`, W / 2, 125, { align: "center" });
+    doc.setFontSize(9);
+    doc.text(`Instituição: ${certificate.institution_name || institution.name}`, 20, 140);
+    if (certificate.institution_cnpj) doc.text(`CNPJ: ${maskCnpj(certificate.institution_cnpj)}`, 20, 147);
+    doc.text(`Responsável: ${certificate.responsible || course.responsible} — ${certificate.responsible_role || course.responsibleRole}`, 20, 154);
+    doc.text(`Registro: ${certificate.code}`, 20, 161);
     const qr = await QRCode.toDataURL(`${window.location.origin}/validar/${certificate.code}`, { margin: 1, width: 180 });
     doc.addImage(qr, "PNG", 245, 145, 30, 30);
     doc.setFontSize(7);
