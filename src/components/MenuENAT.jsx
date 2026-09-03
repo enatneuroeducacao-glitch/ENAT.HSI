@@ -19,6 +19,7 @@ export function MenuENAT() {
             <li><NavLink to="/cursos" className={({ isActive }) => (isActive ? "text-blue-600 font-medium" : "text-gray-700")}>📚 Cursos</NavLink></li>
             <li><NavLink to="/testes" className={({ isActive }) => (isActive ? "text-blue-600 font-medium" : "text-gray-700")}>🧪 Testes</NavLink></li>
             <li><NavLink to="/certificados" className={({ isActive }) => (isActive ? "text-blue-600 font-medium" : "text-gray-700")}>📜 Certificados</NavLink></li>
+            <li><NavLink to="/emissor" className={({ isActive }) => (isActive ? "text-blue-600 font-medium" : "text-gray-700")}>🖨️ Emissor</NavLink></li>
             <li>
               <div className="relative group">
                 <button className="text-gray-700 hover:text-blue-600 font-medium flex items-center gap-1">➕ Cadastro <span className="text-xs">▼</span></button>
