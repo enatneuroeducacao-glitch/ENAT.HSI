@@ -39,6 +39,8 @@ const read = (key, fallback) => {
 const save = (key, value) => localStorage.setItem(key, JSON.stringify(value));
 const onlyDigits = (value) => String(value || "").replace(/\D/g, "");
 const totalHours = (course) => course.subjects.reduce((sum, item) => sum + Number(item[1] || 0), 0);
+const minimumDaysForHours = (hours) => Math.ceil((Number(hours) / 24) * 7);
+const formatDateBR = (value) => value ? new Date(`${value}T12:00:00`).toLocaleDateString("pt-BR") : "";
 const maskCpf = (value) => {
   const d = onlyDigits(value).slice(0, 11);
   if (d.length <= 3) return d;
@@ -193,10 +195,11 @@ export function EmissorCertificadosAdmin() {
   const [institution, setInstitution] = useState(() => read(INSTITUTION_KEY, defaultInstitution));
   const [brand, setBrand] = useState(defaultBrand);
   const [brandReady, setBrandReady] = useState(false);
-  const [student, setStudent] = useState({ name: "", cpf: "", date: new Date().toISOString().slice(0, 10) });
+  const [student, setStudent] = useState({ name: "", cpf: "", startDate: "", endDate: "" });
   const [certs, setCerts] = useState([]);
 
   const hours = useMemo(() => totalHours(course), [course]);
+  const minimumDays = useMemo(() => minimumDaysForHours(hours), [hours]);
 
   useEffect(() => {
     let mounted = true;
@@ -270,6 +273,9 @@ export function EmissorCertificadosAdmin() {
     const doc = new jsPDF({ orientation: "landscape", unit: "mm", format: "a4" });
     const W = 297;
     const H = 210;
+    const startDate = certificate.start_date || certificate.completion_date;
+    const endDate = certificate.end_date || certificate.completion_date;
+    const periodText = `compreendida entre ${formatDateBR(startDate)} e ${formatDateBR(endDate)}`;
 
     drawPageFrame(doc, W, H);
     await addWatermark(doc, brand.neuroLogo, W, H);
@@ -284,17 +290,17 @@ export function EmissorCertificadosAdmin() {
     await addImageContain(doc, brand.neuroLogo, 243, 16, 36, 36);
     doc.setFontSize(18);
     doc.setFont("helvetica", "bold");
-    doc.text(certificate.student_name, W / 2, 78, { align: "center" });
-    doc.setFont("helvetica", "normal");
-    doc.setFontSize(12);
-    doc.text("Esta conquista representa dedicação, conhecimento e compromisso com uma mobilidade mais humana e segura.", W / 2, 91, { align: "center", maxWidth: 235 });
-    doc.setFont("helvetica", "bold");
-    doc.setFontSize(13);
-    doc.text("PARABÉNS POR ESTA CONQUISTA!", W / 2, 105, { align: "center" });
+    doc.text(certificate.student_name, W / 2, 76, { align: "center" });
     doc.setFont("helvetica", "normal");
     doc.setFontSize(11);
-    doc.text(`Formação concluída: ${certificate.course_name}`, W / 2, 116, { align: "center", maxWidth: 235 });
-    doc.text(`${certificate.hours} horas • ${certificate.modality || course.modality} • conclusão em ${new Date(certificate.completion_date + "T12:00:00").toLocaleDateString("pt-BR")}`, W / 2, 125, { align: "center" });
+    doc.text("Certificamos que o(a) participante acima identificado(a)", W / 2, 89, { align: "center" });
+    doc.text("concluiu com êxito o curso de", W / 2, 98, { align: "center" });
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(14);
+    doc.text(certificate.course_name, W / 2, 109, { align: "center", maxWidth: 235 });
+    doc.setFont("helvetica", "normal");
+    doc.setFontSize(10);
+    doc.text(`Formação baseada em Neurociência Aplicada ao Trânsito, com carga horária de ${certificate.hours} horas, ${periodText}.`, W / 2, 121, { align: "center", maxWidth: 235 });
     doc.setFontSize(9);
     doc.text(`Instituição: ${certificate.institution_name || institution.name}`, 20, 140);
     if (certificate.institution_cnpj) doc.text(`CNPJ: ${maskCnpj(certificate.institution_cnpj)}`, 20, 147);
@@ -381,6 +387,18 @@ export function EmissorCertificadosAdmin() {
       setMessage("Informe nome completo e CPF válido.");
       return;
     }
+    if (!student.startDate || !student.endDate) {
+      setMessage("Informe obrigatoriamente a data de início e a data de fim do curso.");
+      return;
+    }
+    const start = new Date(`${student.startDate}T00:00:00`);
+    const end = new Date(`${student.endDate}T00:00:00`);
+    const durationDays = Math.floor((end.getTime() - start.getTime()) / 86400000) + 1;
+    if (durationDays < minimumDays) {
+      const weeks = Math.ceil(hours / 24);
+      setMessage(`Período insuficiente. Para ${hours} horas, o certificado exige no mínimo ${minimumDays} dias (${weeks} semanas). O período informado possui ${durationDays} dias.`);
+      return;
+    }
     if (!brandReady) {
       setMessage("Aguarde o carregamento das logos antes de emitir o certificado.");
       return;
@@ -396,7 +414,9 @@ export function EmissorCertificadosAdmin() {
         course_nature: course.nature,
         hours,
         subjects: course.subjects.map(([name, subjectHours]) => ({ name, hours: Number(subjectHours) })),
-        completion_date: student.date,
+        start_date: student.startDate,
+        end_date: student.endDate,
+        completion_date: student.endDate,
         responsible: course.responsible,
         institution_name: institution.name,
         institution_cnpj: onlyDigits(institution.cnpj),
@@ -406,7 +426,7 @@ export function EmissorCertificadosAdmin() {
       const certificate = response.certificate;
       await makePdf(certificate);
       setMessage(`Certificado ${certificate.code} emitido com sucesso.`);
-      setStudent({ name: "", cpf: "", date: new Date().toISOString().slice(0, 10) });
+      setStudent({ name: "", cpf: "", startDate: "", endDate: "" });
       refresh();
     } catch (error) {
       setMessage(error.message);
@@ -498,10 +518,11 @@ export function EmissorCertificadosAdmin() {
             <h2>Novo certificado</h2>
             <label>Nome completo<input value={student.name} onChange={(event) => setStudent({ ...student, name: event.target.value })} /></label>
             <label>CPF<input value={maskCpf(student.cpf)} onChange={(event) => setStudent({ ...student, cpf: event.target.value })} /></label>
-            <label>Data de conclusão<input type="date" value={student.date} onChange={(event) => setStudent({ ...student, date: event.target.value })} /></label>
+            <label>Data de início<input type="date" value={student.startDate} onChange={(event) => setStudent({ ...student, startDate: event.target.value })} required /></label>
+            <label>Data de fim<input type="date" value={student.endDate} min={student.startDate || undefined} onChange={(event) => setStudent({ ...student, endDate: event.target.value })} required /></label>
             <div className="summary">
               <b>{course.name}</b>
-              <span>{hours} horas • {course.modality}</span>
+              <span>{hours} horas • período mínimo: {minimumDays} dias ({Math.ceil(hours / 24)} semanas)</span>
               <span>{institution.name}</span>
             </div>
             <button onClick={emit} disabled={busy || !brandReady}>{busy ? "Emitindo…" : !brandReady ? "Carregando identidade…" : "Emitir e gerar PDF"}</button>
@@ -531,7 +552,7 @@ export function EmissorCertificadosAdmin() {
             <label>Modalidade<input value={course.modality} onChange={(event) => updateCourseField("modality", event.target.value)} /></label>
             <label>Responsável<input value={course.responsible} onChange={(event) => updateCourseField("responsible", event.target.value)} /></label>
             <label>Função do responsável<input value={course.responsibleRole} onChange={(event) => updateCourseField("responsibleRole", event.target.value)} /></label>
-            <div className="summary"><b>Carga horária total</b><span>{hours} horas</span></div>
+            <div className="summary"><b>Carga horária total</b><span>{hours} horas • período mínimo de {minimumDays} dias ({Math.ceil(hours / 24)} semanas)</span></div>
           </article>
           <article className="issuer-card">
             <h2>Componentes curriculares</h2>
