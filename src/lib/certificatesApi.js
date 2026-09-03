@@ -11,7 +11,8 @@ function requireClient() {
 
 async function invoke(name, body) {
   const client = requireClient();
-  const { data: sessionData } = await client.auth.getSession();
+  const { data: sessionData, error: sessionError } = await client.auth.getSession();
+  if (sessionError) throw new Error(sessionError.message || "Não foi possível verificar a sessão administrativa.");
   if (!sessionData.session) throw new Error("Acesso administrativo necessário. Faça login para emitir ou administrar certificados.");
   const { data, error } = await client.functions.invoke(name, { body });
   if (error) throw new Error(error.message || "Falha ao executar a operação de certificados.");
@@ -20,17 +21,23 @@ async function invoke(name, body) {
 
 export async function getSession() {
   const client = requireClient();
-  return client.auth.getSession();
+  const { data, error } = await client.auth.getSession();
+  if (error) throw new Error(error.message || "Não foi possível verificar a sessão administrativa.");
+  return data.session;
 }
 
 export async function signIn(email, password) {
   const client = requireClient();
-  return client.auth.signInWithPassword({ email, password });
+  const { data, error } = await client.auth.signInWithPassword({ email, password });
+  if (error) throw new Error(error.message || "Não foi possível entrar no emissor.");
+  return data.session;
 }
 
 export async function signUp(email, password) {
   const client = requireClient();
-  return client.auth.signUp({ email, password });
+  const { data, error } = await client.auth.signUp({ email, password });
+  if (error) throw new Error(error.message || "Não foi possível criar o acesso.");
+  return data.session;
 }
 
 export async function signOut() {
