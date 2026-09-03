@@ -35,7 +35,14 @@ export async function signIn(email, password) {
 
 export async function signUp(email, password) {
   const client = requireClient();
-  const { data, error } = await client.auth.signUp({ email, password });
+  const redirectTo = `${window.location.origin}/emissor`;
+  const { data, error } = await client.auth.signUp({
+    email,
+    password,
+    options: {
+      emailRedirectTo: redirectTo,
+    },
+  });
   if (error) throw new Error(error.message || "Não foi possível criar o acesso.");
   return data.session;
 }
