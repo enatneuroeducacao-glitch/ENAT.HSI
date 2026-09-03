@@ -36,13 +36,7 @@ export async function signIn(email, password) {
 export async function signUp(email, password) {
   const client = requireClient();
   const redirectTo = `${window.location.origin}/emissor`;
-  const { data, error } = await client.auth.signUp({
-    email,
-    password,
-    options: {
-      emailRedirectTo: redirectTo,
-    },
-  });
+  const { data, error } = await client.auth.signUp({ email, password, options: { emailRedirectTo: redirectTo } });
   if (error) throw new Error(error.message || "Não foi possível criar o acesso.");
   return data.session;
 }
@@ -65,14 +59,25 @@ export async function listCertificates() {
   return invoke("list-certificates", {});
 }
 
+export async function listInstructors() {
+  const client = requireClient();
+  const { data, error } = await client.functions.invoke("manage-instructors", { method: "GET" });
+  if (error) throw new Error(error.message || "Não foi possível carregar os professores.");
+  return data;
+}
+
+export async function createInstructor(instructor) {
+  return invoke("manage-instructors", { action: "create", ...instructor });
+}
+
+export async function deleteInstructor(id) {
+  return invoke("manage-instructors", { action: "delete", id });
+}
+
 export async function validateCertificate(code) {
   const normalized = String(code || "").trim().toUpperCase();
   if (!normalized) return { valid: false, certificate: null, error: "Código não informado" };
-  const response = await fetch(`${SUPABASE_URL}/functions/v1/validate-certificate`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ code: normalized }),
-  });
+  const response = await fetch(`${SUPABASE_URL}/functions/v1/validate-certificate`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ code: normalized }) });
   const data = await response.json().catch(() => ({}));
   if (!response.ok) throw new Error(data.error || "Não foi possível validar o certificado.");
   return data;
