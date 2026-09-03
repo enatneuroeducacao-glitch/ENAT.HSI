@@ -42,8 +42,8 @@ export async function issueCertificate(certificate) {
   return invoke("issue-certificate", certificate);
 }
 
-export async function cancelCertificate(code, action = "CANCELLED") {
-  return invoke("cancel-certificate", { code, action });
+export async function cancelCertificate(code, status) {
+  return invoke("cancel-certificate", { code, status });
 }
 
 export async function listCertificates() {
