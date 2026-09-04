@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { bootstrapAdmin, signInUsername } from "../lib/certificatesApi";
+import { bootstrapAdmin, signInUsername } from "../lib/authApi";
 import { useAuth } from "../context/AuthContext";
 import "./LoginENAT.css";
 
