@@ -1,5 +1,10 @@
-import { NavLink } from "react-router-dom";
+import { NavLink, useNavigate } from "react-router-dom";
+import { useAuth } from "../context/AuthContext";
+import { signOut } from "../lib/authApi";
 
-export function MenuENAT() {
-  return <header className="w-full bg-white shadow-sm fixed top-0 left-0 right-0 z-50"><div className="max-w-6xl mx-auto px-6 py-4 flex items-center justify-between"><div className="text-2xl font-bold">ENAT HSI</div><nav><ul className="flex gap-8 items-center"><li><NavLink to="/cursos/admin" className={({isActive})=>(isActive?"text-blue-600 font-semibold":"text-gray-700")}>📚 Banco de Cursos</NavLink></li><li><NavLink to="/alunos" className={({isActive})=>(isActive?"text-blue-600 font-semibold":"text-gray-700")}>👥 Alunos</NavLink></li><li><NavLink to="/emissor" className={({isActive})=>(isActive?"text-blue-600 font-semibold":"text-gray-700")}>🖨️ Emissor de Certificados</NavLink></li></ul></nav></div></header>;
+export function MenuENAT(){
+ const {profile}=useAuth(); const navigate=useNavigate();
+ const logout=async()=>{await signOut();navigate("/login",{replace:true});};
+ const link=({isActive})=>`enat-admin-link ${isActive?"active":""}`;
+ return <header className="enat-admin-menu"><div className="enat-admin-inner"><div className="enat-admin-brand">ENAT <span>HSI</span></div><nav><NavLink to="/cursos/admin" className={link}>📚 Banco de Cursos</NavLink><NavLink to="/alunos" className={link}>👥 Alunos</NavLink><NavLink to="/emissor" className={link}>🖨️ Emissor</NavLink>{profile?.role==="admin"&&<NavLink to="/usuarios" className={link}>🔐 Usuários</NavLink>}</nav><div className="enat-admin-user"><span>{profile?.display_name||profile?.username}</span><button onClick={logout}>Sair</button></div></div></header>;
 }
