@@ -1,6 +1,7 @@
 import { NavLink, useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import { signOut } from "../lib/authApi";
+import "./MenuENAT.css";
 
 export function MenuENAT(){
  const {profile}=useAuth(); const navigate=useNavigate();
