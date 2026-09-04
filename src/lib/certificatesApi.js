@@ -33,4 +33,8 @@ export async function updateCourse(id,course){return invoke("manage-courses",{ac
 export async function duplicateCourse(id){return invoke("manage-courses",{action:"duplicate",id});}
 export async function archiveCourse(id){return invoke("manage-courses",{action:"archive",id});}
 export async function publishCourse(id,published){return invoke("manage-courses",{action:"publish",id,published});}
+export async function listStudents(){return invoke("manage-students",{action:"list"});}
+export async function createStudent(student){return invoke("manage-students",{action:"create",...student});}
+export async function updateStudent(id,student){return invoke("manage-students",{action:"update",id,...student});}
+export async function deleteStudent(id){return invoke("manage-students",{action:"delete",id});}
 export async function validateCertificate(code){const normalized=String(code||"").trim().toUpperCase();if(!normalized)return {valid:false,certificate:null,error:"Código não informado"};const response=await fetch(`${SUPABASE_URL}/functions/v1/validate-certificate`,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({code:normalized})});const data=await response.json().catch(()=>({}));if(!response.ok)throw new Error(data.error||"Não foi possível validar o certificado.");return data;}
