@@ -1,16 +1,13 @@
 import React,{useEffect,useMemo,useState} from "react";
 import {jsPDF} from "jspdf";
 import QRCode from "qrcode";
-import {issueCertificate,listCourses,listInstructors,updateCourse} from "../lib/certificatesApi";
+import {issueCertificate,listCourses,listInstructors} from "../lib/certificatesApi";
+import {syncCoursesWithLocalAssignments} from "../lib/courseAssignmentsSync";
 import "./DocenteENAT.css";
 
 const BRAND_DB="enat-certificate-brand",BRAND_STORE="assets";
-const COURSE_KEY="enat_certificate_course_v3";
 const openDB=()=>new Promise((res,rej)=>{if(!indexedDB)return rej();const r=indexedDB.open(BRAND_DB,1);r.onupgradeneeded=()=>{if(!r.result.objectStoreNames.contains(BRAND_STORE))r.result.createObjectStore(BRAND_STORE)};r.onsuccess=()=>res(r.result);r.onerror=()=>rej(r.error)});
 const getBrands=async()=>{try{const db=await openDB();return await new Promise(resolve=>{const q=db.transaction(BRAND_STORE,"readonly").objectStore(BRAND_STORE).get("logos");q.onsuccess=()=>resolve(q.result||{});q.onerror=()=>resolve({})})}catch{return {}}};
-const readLocalCourse=()=>{try{const value=JSON.parse(localStorage.getItem(COURSE_KEY)||"null");return value&&Array.isArray(value.modules)?value:null}catch{return null}};
-const hasTeacherAssignments=c=>Array.isArray(c?.modules)&&c.modules.some(m=>(m.lessons||[]).some(l=>String(l.teacherId||l.teacher_id||l.teacher?.id||"").trim()));
-const mergeAssignments=(dbCourse,localCourse)=>{if(!dbCourse||!localCourse||!hasTeacherAssignments(localCourse))return dbCourse;const modules=(dbCourse.modules||[]).map((m,mi)=>{const lm=(localCourse.modules||[])[mi];return {...m,lessons:(m.lessons||[]).map((l,li)=>{const ll=(lm?.lessons||[])[li];const teacherId=String(ll?.teacherId||ll?.teacher_id||ll?.teacher?.id||l.teacherId||l.teacher_id||l.teacher?.id||"").trim();return teacherId?{...l,teacherId}:l})}});return {...dbCourse,modules};};
 const digits=v=>String(v||"").replace(/\D/g,"");
 const hash=async v=>[...new Uint8Array(await crypto.subtle.digest("SHA-256",new TextEncoder().encode(v)))].map(b=>b.toString(16).padStart(2,"0")).join("");
 const days=(a,b)=>a&&b?Math.floor((new Date(`${b}T00:00:00`)-new Date(`${a}T00:00:00`))/86400000)+1:0;
@@ -20,7 +17,7 @@ const addImg=async(doc,d,x,y,mw,mh)=>{if(!d)return;try{const {w,h}=await imgSize
 
 export function DocenteENAT(){
  const [teachers,setTeachers]=useState([]),[courses,setCourses]=useState([]),[teacherId,setTeacherId]=useState(""),[courseId,setCourseId]=useState(""),[start,setStart]=useState(""),[end,setEnd]=useState(""),[busy,setBusy]=useState(false),[msg,setMsg]=useState(""),[brand,setBrand]=useState({});
- useEffect(()=>{(async()=>{const [i,c,b]=await Promise.allSettled([listInstructors(),listCourses(),getBrands()]);if(i.status==="fulfilled")setTeachers((i.value?.instructors||[]).filter(x=>x.active!==false));if(c.status==="fulfilled"){const dbCourses=(c.value?.courses||[]).filter(x=>x.active!==false);const local=readLocalCourse();const merged=dbCourses.map(x=>{const same=(local?.code&&x.code===String(local.code).toUpperCase())||(local?.name&&x.name===local.name);return same?mergeAssignments(x,local):x});setCourses(merged)}if(b.status==="fulfilled")setBrand(b.value||{})})()},[]);
+ useEffect(()=>{(async()=>{const [i,c,b]=await Promise.allSettled([listInstructors(),listCourses(),getBrands()]);if(i.status==="fulfilled")setTeachers((i.value?.instructors||[]).filter(x=>x.active!==false));if(c.status==="fulfilled"){const dbCourses=(c.value?.courses||[]).filter(x=>x.active!==false);try{const synced=await syncCoursesWithLocalAssignments(dbCourses);setCourses(synced.courses);if(synced.changed)setMsg("As atribuições docentes do emissor foram sincronizadas com o Banco de Cursos e o Supabase.")}catch(e){setCourses(dbCourses);setMsg(`Cursos carregados, mas a sincronização docente não foi concluída: ${e.message||"falha"}`)}}else setMsg(`Cursos: ${c.reason?.message||"falha ao carregar"}`);if(b.status==="fulfilled")setBrand(b.value||{})})()},[]);
  const teacher=teachers.find(x=>x.id===teacherId);const course=courses.find(x=>x.id===courseId);
  const assigned=useMemo(()=>{if(!teacher||!course)return[];return (course.modules||[]).flatMap((m,mi)=>(m.lessons||[]).filter(l=>String(l.teacherId||l.teacher_id||l.teacher?.id||"").trim()===String(teacher.id)).map((l,li)=>({module:m.title,lesson:l.name,hours:Number(l.hours||0),mi,li})))},[teacher,course]);
  const totalHours=assigned.reduce((a,x)=>a+x.hours,0); const minDays=Math.max(1,Math.ceil(totalHours/24*7));
