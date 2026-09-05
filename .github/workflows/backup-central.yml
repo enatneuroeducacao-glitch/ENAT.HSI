@@ -1,0 +1,40 @@
+name: Backup Central ENAT HSI
+
+on:
+  push:
+    branches: ["main"]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+env:
+  TZ: America/Sao_Paulo
+
+jobs:
+  backup:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout complete source
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
+      - name: Create immutable source snapshot
+        run: |
+          mkdir -p backup
+          git archive --format=tar.gz --output="backup/ENAT-HSI-source-${GITHUB_SHA}.tar.gz" HEAD
+          printf 'Central ENAT HSI backup\nCommit: %s\nDate UTC: %s\nRepository: %s\n' "$GITHUB_SHA" "$GITHUB_SERVER_URL/$GITHUB_REPOSITORY/commit/$GITHUB_SHA" "${GITHUB_REPOSITORY}" > backup/README.txt
+          git rev-parse HEAD > backup/COMMIT.txt
+
+      - name: Upload source snapshot
+        uses: actions/upload-artifact@v4
+        with:
+          name: ENAT-HSI-backup-${{ github.sha }}
+          path: backup/
+          retention-days: 90
+
+      - name: Record backup manifest
+        run: |
+          echo "Backup created for commit $GITHUB_SHA"
+          ls -lh backup/
