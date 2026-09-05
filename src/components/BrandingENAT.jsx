@@ -88,7 +88,8 @@ function requestLegacyBrand() {
 
 if (typeof window !== "undefined") {
   window.addEventListener("message", async (event) => {
-    if (event.origin !== "https://www.hsi-doth-pg.com.br" && event.origin !== "https://hsi-doth-pg.com.br") return;
+    const allowedOrigins = ["https://www.hsi-doth-pg.com.br", "https://hsi-doth-pg.com.br", LEGACY_ORIGIN];
+    if (!allowedOrigins.includes(event.origin)) return;
     if (event.data?.type !== "ENAT_BRAND_REQUEST") return;
     const indexed = await readIndexedBrand();
     const local = readLegacy();
