@@ -8,7 +8,24 @@ const formatCpf=v=>{const d=String(v||"").replace(/\D/g,"").slice(0,11);return d
 
 export function BancoAlunosENAT(){
  const [students,setStudents]=useState([]),[courses,setCourses]=useState([]),[editing,setEditing]=useState(null),[query,setQuery]=useState(""),[busy,setBusy]=useState(false),[msg,setMsg]=useState("");
- const load=async()=>{try{const [s,c]=await Promise.all([listStudents(),listCourses()]);setStudents(s.students||[]);setCourses((c.courses||[]).filter(x=>x.active!==false));}catch(e){setMsg(e.message)}};
+ const load=async()=>{
+  setMsg("");
+  const [studentsResult,coursesResult]=await Promise.allSettled([listStudents(),listCourses()]);
+  const errors=[];
+  if(studentsResult.status==="fulfilled"){
+   setStudents(studentsResult.value?.students||[]);
+  }else{
+   errors.push(`Alunos: ${studentsResult.reason?.message||"não foi possível carregar o banco de alunos."}`);
+  }
+  if(coursesResult.status==="fulfilled"){
+   const available=(coursesResult.value?.courses||[]).filter(x=>x.active!==false);
+   setCourses(available);
+   if(!available.length) errors.push("Nenhum curso ativo foi encontrado no Banco de Cursos.");
+  }else{
+   errors.push(`Cursos: ${coursesResult.reason?.message||"não foi possível carregar os cursos cadastrados."}`);
+  }
+  if(errors.length) setMsg(errors.join(" • "));
+ };
  useEffect(()=>{load()},[]);
  const filtered=useMemo(()=>students.filter(s=>{const q=query.trim().toLowerCase();if(!q)return true;return [s.name,s.cpf,s.credential,s.uf,s.enat_courses?.name].some(v=>String(v||"").toLowerCase().includes(q));}),[students,query]);
  const begin=s=>setEditing(JSON.parse(JSON.stringify(s||empty)));
