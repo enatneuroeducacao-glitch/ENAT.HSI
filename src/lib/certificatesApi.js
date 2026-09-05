@@ -7,13 +7,28 @@ function requireClient() {
   return supabase;
 }
 
+async function extractFunctionError(error) {
+  if (!error) return null;
+  if (error.context && typeof error.context.json === "function") {
+    try {
+      const body = await error.context.json();
+      if (body?.error) return body.error;
+      if (body?.message) return body.message;
+    } catch {}
+  }
+  return error.message || null;
+}
+
 async function invoke(name, body) {
   const client = requireClient();
   const { data: sessionData, error: sessionError } = await client.auth.getSession();
   if (sessionError) throw new Error(sessionError.message || "Não foi possível verificar a sessão administrativa.");
   if (!sessionData.session) throw new Error("Acesso administrativo necessário. Faça login.");
   const { data, error } = await client.functions.invoke(name, { body });
-  if (error) throw new Error(error.message || "Falha ao executar a operação.");
+  if (error) {
+    const detail = await extractFunctionError(error);
+    throw new Error(detail || "Falha ao executar a operação.");
+  }
   return data;
 }
 
