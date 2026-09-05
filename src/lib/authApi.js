@@ -6,6 +6,7 @@ const normalize=(value)=>String(value||"").trim().toLowerCase().normalize("NFD")
 
 const usernameAliases={
   "vilmar becker":"vilmar.becker.vb@gmail.com",
+  "vilmar_becker":"vilmar.becker.vb@gmail.com",
   "vilmar":"vilmar.becker.vb@gmail.com",
   "enat neuroeducacao":"enat.neuroeducacao@gmail.com",
   "enat":"enat.neuroeducacao@gmail.com",
