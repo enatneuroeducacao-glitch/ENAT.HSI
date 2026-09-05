@@ -1,6 +1,6 @@
 import { supabase } from "./supabaseClient";
 
-export const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL || "https://qkpsxbcsngowljqhyvit.supabase.co";
+export const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL || "https://gicjsuagmiyoqvttbqjw.supabase.co";
 
 function requireClient() {
   if (!supabase) throw new Error("A conexão da Central ENAT HSI com o Supabase ainda não foi configurada.");
