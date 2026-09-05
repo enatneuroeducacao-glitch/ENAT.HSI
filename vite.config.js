@@ -1,5 +1,5 @@
 export default {
-  base: process.env.VITE_BASE_PATH || "/",
+  base: "/ENAT.HSI/",
   esbuild: {
     jsx: "automatic",
   },
