@@ -28,6 +28,9 @@ import { BancoCursosENAT } from "./pages/BancoCursosENAT";
 import { BancoAlunosENAT } from "./pages/BancoAlunosENAT";
 import { UsuariosENAT } from "./pages/UsuariosENAT";
 
+const isGitHubProjectPages = window.location.hostname.endsWith("github.io") && window.location.pathname.startsWith("/ENAT.HSI");
+const APP_BASENAME = isGitHubProjectPages ? "/ENAT.HSI" : "";
+
 function PrivateArea(){
  const {session,profile,loading}=useAuth(); const location=useLocation();
  if(location.pathname==="/login") return <Routes><Route path="/login" element={<LoginENAT/>}/></Routes>;
@@ -38,5 +41,5 @@ function PrivateArea(){
    <Route path="/" element={<Home/>}/><Route path="/sobre" element={<SobreENAT/>}/><Route path="/produtos" element={<ProdutosENAT/>}/><Route path="/produtos/:produto" element={<ProdutoDetail/>}/><Route path="/certificacao" element={<CertificacaoENAT/>}/><Route path="/governanca" element={<GovernancaENAT/>}/><Route path="/contato" element={<ContatoENAT/>}/><Route path="/resultados" element={<ResultadosENAT/>}/><Route path="/cadastro/instrutor" element={<CadastroInstrutor/>}/><Route path="/cadastro/aluno" element={<CadastroAluno/>}/><Route path="/cursos/admin" element={<BancoCursosENAT/>}/><Route path="/cursos" element={<CursosENAT/>}/><Route path="/cursos/:courseId" element={<CursoDetalhado/>}/><Route path="/testes" element={<TestesAvancados/>}/><Route path="/testes/:testId" element={<TesteAprofundado/>}/><Route path="/certificados" element={<Certificados/>}/><Route path="/dashboard" element={<DashboardAluno/>}/><Route path="/dashboard-enat" element={<DashboardENAT/>}/><Route path="/relatorio-turmas" element={<RelatorioTurmas/>}/><Route path="/indicacoes" element={<IndicacoesInstrutor/>}/><Route path="/emissor" element={<EmissorCertificadosComBusca/>}/><Route path="/docente-enat" element={<DocenteENAT/>}/><Route path="/alunos" element={<BancoAlunosENAT/>}/><Route path="/usuarios" element={profile.role==="admin"?<UsuariosENAT/>:<Navigate to="/emissor" replace/>}/><Route path="*" element={<Navigate to="/emissor" replace/>}/>
  </Routes></>;
 }
-export default function CentralENATHSI(){return <BrowserRouter basename={import.meta.env.BASE_URL}><AuthProvider><PrivateArea/></AuthProvider></BrowserRouter>;
+export default function CentralENATHSI(){return <BrowserRouter basename={APP_BASENAME}><AuthProvider><PrivateArea/></AuthProvider></BrowserRouter>;
 }
