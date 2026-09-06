@@ -133,11 +133,167 @@ body:has(.enat-admin-menu) .section hr { border: 0; border-top: 1px solid rgba(9
 .enat-admin-inner nav::-webkit-scrollbar { height: 5px; }
 .enat-admin-inner nav::-webkit-scrollbar-thumb { background: #365163; border-radius: 5px; }
 
+/* Camada final de normalização: todas as rotas privadas compartilham o mesmo espaço, tipografia, controles e cartões. */
+body:has(.enat-admin-menu) main {
+  box-sizing: border-box;
+  width: 100% !important;
+  max-width: none !important;
+  min-height: calc(100vh - 76px) !important;
+  margin: 0 !important;
+  padding: 108px max(20px, calc((100vw - 1180px) / 2)) 56px !important;
+  background: var(--enat-bg) !important;
+  color: var(--enat-text) !important;
+  font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif !important;
+}
+
+body:has(.enat-admin-menu) main h1,
+body:has(.enat-admin-menu) main h2,
+body:has(.enat-admin-menu) main h3,
+body:has(.enat-admin-menu) main h4 {
+  color: var(--enat-text) !important;
+}
+body:has(.enat-admin-menu) main p,
+body:has(.enat-admin-menu) main small,
+body:has(.enat-admin-menu) main label,
+body:has(.enat-admin-menu) main li {
+  color: #c8d9e3;
+}
+body:has(.enat-admin-menu) main input:not([type="checkbox"]):not([type="radio"]),
+body:has(.enat-admin-menu) main select,
+body:has(.enat-admin-menu) main textarea {
+  box-sizing: border-box !important;
+  width: 100%;
+  min-height: 42px;
+  padding: 11px 12px !important;
+  background: #07111b !important;
+  color: var(--enat-text) !important;
+  border: 1px solid var(--enat-border-strong) !important;
+  border-radius: 10px !important;
+}
+body:has(.enat-admin-menu) main input::placeholder,
+body:has(.enat-admin-menu) main textarea::placeholder { color: #718899 !important; }
+body:has(.enat-admin-menu) main input[type="checkbox"],
+body:has(.enat-admin-menu) main input[type="radio"] { accent-color: var(--enat-accent); }
+body:has(.enat-admin-menu) main button:not(.inline-search-trigger) {
+  min-height: 40px;
+  border-radius: 10px !important;
+  border: 1px solid var(--enat-border-strong);
+  background: #0e2535;
+  color: #d9e8ef;
+  padding: 10px 14px;
+  font-weight: 800;
+  cursor: pointer;
+}
+body:has(.enat-admin-menu) main button:not(.inline-search-trigger):hover { border-color: var(--enat-accent); }
+body:has(.enat-admin-menu) main button.primary,
+body:has(.enat-admin-menu) main .primary,
+body:has(.enat-admin-menu) main .emit-docente {
+  background: var(--enat-accent) !important;
+  color: var(--enat-bg) !important;
+  border-color: transparent !important;
+}
+body:has(.enat-admin-menu) main [class*="bg-white"],
+body:has(.enat-admin-menu) main [class*="bg-gray-50"],
+body:has(.enat-admin-menu) main [class*="bg-gray-100"],
+body:has(.enat-admin-menu) main [class*="bg-blue-50"],
+body:has(.enat-admin-menu) main [class*="bg-green-50"],
+body:has(.enat-admin-menu) main [class*="bg-yellow-50"],
+body:has(.enat-admin-menu) main [class*="bg-purple-50"],
+body:has(.enat-admin-menu) main [class*="bg-red-50"] {
+  background: var(--enat-surface) !important;
+  color: var(--enat-text) !important;
+}
+body:has(.enat-admin-menu) main [class*="text-gray-800"],
+body:has(.enat-admin-menu) main [class*="text-gray-700"],
+body:has(.enat-admin-menu) main [class*="text-gray-600"],
+body:has(.enat-admin-menu) main [class*="text-gray-500"],
+body:has(.enat-admin-menu) main [class*="text-blue-900"],
+body:has(.enat-admin-menu) main [class*="text-blue-700"] {
+  color: #c8d9e3 !important;
+}
+body:has(.enat-admin-menu) main [class*="shadow"] { box-shadow: 0 10px 30px rgba(0,0,0,.16) !important; }
+body:has(.enat-admin-menu) main [class*="rounded-lg"],
+body:has(.enat-admin-menu) main [class*="rounded-xl"],
+body:has(.enat-admin-menu) main [class*="rounded-2xl"],
+body:has(.enat-admin-menu) main [class*="rounded-3xl"] { border-radius: 16px !important; }
+body:has(.enat-admin-menu) main table { width: 100%; border-collapse: collapse; color: var(--enat-text); }
+body:has(.enat-admin-menu) main th {
+  color: var(--enat-muted) !important;
+  background: #0e1c2a !important;
+  border-bottom: 1px solid #29435a;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: .06em;
+}
+body:has(.enat-admin-menu) main td { border-bottom: 1px solid #203448; color: #c8d9e3; }
+body:has(.enat-admin-menu) main hr { border-color: rgba(99,202,255,.14) !important; }
+
+/* Componentes administrativos já existentes: mesma geometria de cartão e espaçamento. */
+body:has(.enat-admin-menu) .dash-cards article,
+body:has(.enat-admin-menu) .dash-panel,
+body:has(.enat-admin-menu) .metric-card,
+body:has(.enat-admin-menu) .student-list,
+body:has(.enat-admin-menu) .student-editor,
+body:has(.enat-admin-menu) .course-card,
+body:has(.enat-admin-menu) .editor,
+body:has(.enat-admin-menu) .issuer-card,
+body:has(.enat-admin-menu) .docente-card,
+body:has(.enat-admin-menu) .users-card,
+body:has(.enat-admin-menu) .config-panel,
+body:has(.enat-admin-menu) .recovery-card {
+  background: var(--enat-surface) !important;
+  color: var(--enat-text) !important;
+  border: 1px solid var(--enat-border) !important;
+  border-radius: 16px !important;
+  box-shadow: 0 10px 30px rgba(0,0,0,.16) !important;
+}
+body:has(.enat-admin-menu) .students-admin,
+body:has(.enat-admin-menu) .courses-admin,
+body:has(.enat-admin-menu) .issuer,
+body:has(.enat-admin-menu) .docente-enat,
+body:has(.enat-admin-menu) .users-page,
+body:has(.enat-admin-menu) .config-portal,
+body:has(.enat-admin-menu) .recovery-page,
+body:has(.enat-admin-menu) .dashboard-enat {
+  background: transparent !important;
+  color: var(--enat-text) !important;
+  width: 100% !important;
+  max-width: none !important;
+  margin: 0 !important;
+  box-sizing: border-box;
+}
+body:has(.enat-admin-menu) .students-header,
+body:has(.enat-admin-menu) .courses-admin > header,
+body:has(.enat-admin-menu) .issuer-head,
+body:has(.enat-admin-menu) .docente-enat > header,
+body:has(.enat-admin-menu) .users-head,
+body:has(.enat-admin-menu) .config-shell,
+body:has(.enat-admin-menu) .dash-head,
+body:has(.enat-admin-menu) .dash-cards,
+body:has(.enat-admin-menu) .dash-grid,
+body:has(.enat-admin-menu) .dash-metrics,
+body:has(.enat-admin-menu) .dash-panel,
+body:has(.enat-admin-menu) .dash-shortcuts,
+body:has(.enat-admin-menu) .student-toolbar,
+body:has(.enat-admin-menu) .student-list,
+body:has(.enat-admin-menu) .student-editor,
+body:has(.enat-admin-menu) .course-list,
+body:has(.enat-admin-menu) .editor,
+body:has(.enat-admin-menu) .docente-grid,
+body:has(.enat-admin-menu) .users-grid,
+body:has(.enat-admin-menu) .table-card {
+  max-width: 1180px;
+  margin-left: auto !important;
+  margin-right: auto !important;
+}
+
 @media (max-width: 900px) {
+  body:has(.enat-admin-menu) main { padding: 92px 12px 40px !important; }
   body:has(.enat-admin-menu) .section { width: min(100% - 24px, 1180px); padding-top: 92px; }
   body:has(.enat-admin-menu) .section.narrow { width: min(100% - 24px, 980px); }
 }
 @media (max-width: 680px) {
+  body:has(.enat-admin-menu) main { padding-left: 12px !important; padding-right: 12px !important; }
   body:has(.enat-admin-menu) .section .portal-grid { grid-template-columns: 1fr; }
   body:has(.enat-admin-menu) .section .portal-grid .field[style*="grid-column"] { grid-column: auto !important; }
 }
