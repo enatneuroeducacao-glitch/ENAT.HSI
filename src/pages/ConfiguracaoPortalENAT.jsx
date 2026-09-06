@@ -1,5 +1,6 @@
 import {useEffect,useState} from "react";
 import {supabase} from "../lib/supabaseClient";
+import "./ConfiguracaoPortalENAT.css";
 
 const fields=[
  ["site_title","Nome do site"],["site_description","Descrição do site"],["neuro_logo_url","Logo Neurociência Aplicada ao Trânsito"],["enat_logo_url","Logo ENAT"],["contact_email","E-mail público"],["contact_phone","Telefone / WhatsApp"],["instagram_url","Instagram"],["linkedin_url","LinkedIn"],["youtube_url","YouTube"]
