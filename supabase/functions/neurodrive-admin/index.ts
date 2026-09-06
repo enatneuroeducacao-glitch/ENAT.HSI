@@ -48,7 +48,7 @@ Deno.serve(async (req: Request) => {
   const { data: source, error: sourceError } = await admin
     .schema("enat_hub")
     .from("source_systems")
-    .select("id,source_key,source_name,enabled")
+    .select("id,source_key,name,enabled")
     .eq("source_key", "assistenteinstrutorv6")
     .maybeSingle();
 
@@ -103,7 +103,7 @@ Deno.serve(async (req: Request) => {
 
   return json({
     source: source.source_key,
-    source_name: source.source_name || "AssistenteInstrutorV6 → CMNT",
+    source_name: source.name || "AssistenteInstrutorV6 → CMNT",
     generated_at: new Date().toISOString(),
     privacy: { pii_excluded: true, individual_records_excluded: true },
     totals: {
