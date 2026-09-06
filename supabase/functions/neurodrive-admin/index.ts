@@ -42,11 +42,25 @@ Deno.serve(async (req: Request) => {
     return json({ error: "admin_access_required" }, 403);
   }
 
+  // Read the Hub tables directly instead of the aggregated view. This keeps the
+  // administrative read independent from view-level grants while retaining the
+  // privacy contract: no individual identifiers or lesson records are returned.
+  const { data: source, error: sourceError } = await admin
+    .schema("enat_hub")
+    .from("source_systems")
+    .select("id,source_key,source_name,enabled")
+    .eq("source_key", "assistenteinstrutorv6")
+    .maybeSingle();
+
+  if (sourceError) return json({ error: "hub_source_read_failed" }, 500);
+  if (!source) return json({ error: "hub_source_not_registered" }, 500);
+  if (!source.enabled) return json({ error: "hub_source_disabled" }, 403);
+
   const { data: rows, error } = await admin
     .schema("enat_hub")
-    .from("v_assessment_overview")
-    .select("observed_at,source_key,source_name,uf,municipality_code,age_band,cnh_category,cargo,instrument,instrument_version,total_score,risk_class,created_at")
-    .eq("source_key", "assistenteinstrutorv6")
+    .from("assessments")
+    .select("observed_at,uf,municipality_code,age_band,cnh_category,cargo,instrument,instrument_version,total_score,risk_class,created_at")
+    .eq("source_system_id", source.id)
     .order("observed_at", { ascending: false })
     .limit(5000);
 
@@ -54,7 +68,9 @@ Deno.serve(async (req: Request) => {
 
   const assessments = rows || [];
   const validScores = assessments.map((r) => Number(r.total_score)).filter((n) => Number.isFinite(n));
-  const averageScore = validScores.length ? Number((validScores.reduce((a, b) => a + b, 0) / validScores.length).toFixed(2)) : null;
+  const averageScore = validScores.length
+    ? Number((validScores.reduce((a, b) => a + b, 0) / validScores.length).toFixed(2))
+    : null;
 
   const byUf = new Map<string, { uf: string; assessments: number; scoreSum: number; scoreCount: number }>();
   const byRisk = new Map<string, number>();
@@ -63,14 +79,22 @@ Deno.serve(async (req: Request) => {
     const item = byUf.get(uf) || { uf, assessments: 0, scoreSum: 0, scoreCount: 0 };
     item.assessments += 1;
     const score = Number(row.total_score);
-    if (Number.isFinite(score)) { item.scoreSum += score; item.scoreCount += 1; }
+    if (Number.isFinite(score)) {
+      item.scoreSum += score;
+      item.scoreCount += 1;
+    }
     byUf.set(uf, item);
+
     const risk = String(row.risk_class || "Não classificado").trim() || "Não classificado";
     byRisk.set(risk, (byRisk.get(risk) || 0) + 1);
   }
 
   const ufDistribution = [...byUf.values()]
-    .map((x) => ({ uf: x.uf, assessments: x.assessments, average_score: x.scoreCount ? Number((x.scoreSum / x.scoreCount).toFixed(2)) : null }))
+    .map((x) => ({
+      uf: x.uf,
+      assessments: x.assessments,
+      average_score: x.scoreCount ? Number((x.scoreSum / x.scoreCount).toFixed(2)) : null,
+    }))
     .sort((a, b) => b.assessments - a.assessments);
 
   const riskDistribution = [...byRisk.entries()]
@@ -78,8 +102,8 @@ Deno.serve(async (req: Request) => {
     .sort((a, b) => b.count - a.count);
 
   return json({
-    source: "assistenteinstrutorv6",
-    source_name: assessments[0]?.source_name || "AssistenteInstrutorV6 → CMNT",
+    source: source.source_key,
+    source_name: source.source_name || "AssistenteInstrutorV6 → CMNT",
     generated_at: new Date().toISOString(),
     privacy: { pii_excluded: true, individual_records_excluded: true },
     totals: {
