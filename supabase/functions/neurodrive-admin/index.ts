@@ -42,31 +42,17 @@ Deno.serve(async (req: Request) => {
     return json({ error: "admin_access_required" }, 403);
   }
 
-  // Read the Hub tables directly instead of the aggregated view. This keeps the
-  // administrative read independent from view-level grants while retaining the
-  // privacy contract: no individual identifiers or lesson records are returned.
-  const { data: source, error: sourceError } = await admin
-    .schema("enat_hub")
-    .from("source_systems")
-    .select("id,source_key,name,enabled")
-    .eq("source_key", "assistenteinstrutorv6")
-    .maybeSingle();
+  // The Hub schema is intentionally not exposed to the browser/PostgREST client.
+  // The protected service-role RPC is the only read path used by this admin endpoint.
+  const { data: snapshot, error: snapshotError } = await admin.rpc("enat_hub_neurodrive_snapshot");
+  if (snapshotError) return json({ error: "hub_snapshot_read_failed" }, 500);
+  if (!snapshot || snapshot.error === "hub_source_not_registered") return json({ error: "hub_source_not_registered" }, 500);
+  if (snapshot.error === "hub_source_disabled") return json({ error: "hub_source_disabled" }, 403);
 
-  if (sourceError) return json({ error: "hub_source_read_failed" }, 500);
-  if (!source) return json({ error: "hub_source_not_registered" }, 500);
-  if (!source.enabled) return json({ error: "hub_source_disabled" }, 403);
+  const sourceKey = String(snapshot.source || "assistenteinstrutorv6");
+  const sourceName = String(snapshot.source_name || "AssistenteInstrutorV6 → CMNT");
+  const assessments = Array.isArray(snapshot.assessments) ? snapshot.assessments : [];
 
-  const { data: rows, error } = await admin
-    .schema("enat_hub")
-    .from("assessments")
-    .select("observed_at,uf,municipality_code,age_band,cnh_category,cargo,instrument,instrument_version,total_score,risk_class,created_at")
-    .eq("source_system_id", source.id)
-    .order("observed_at", { ascending: false })
-    .limit(5000);
-
-  if (error) return json({ error: "hub_read_failed" }, 500);
-
-  const assessments = rows || [];
   const validScores = assessments.map((r) => Number(r.total_score)).filter((n) => Number.isFinite(n));
   const averageScore = validScores.length
     ? Number((validScores.reduce((a, b) => a + b, 0) / validScores.length).toFixed(2))
@@ -102,8 +88,8 @@ Deno.serve(async (req: Request) => {
     .sort((a, b) => b.count - a.count);
 
   return json({
-    source: source.source_key,
-    source_name: source.name || "AssistenteInstrutorV6 → CMNT",
+    source: sourceKey,
+    source_name: sourceName,
     generated_at: new Date().toISOString(),
     privacy: { pii_excluded: true, individual_records_excluded: true },
     totals: {
