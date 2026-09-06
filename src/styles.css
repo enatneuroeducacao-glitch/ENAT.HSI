@@ -2,11 +2,28 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Minimal custom rules */
-html, body, #root {
-  height: 100%;
-}
+html, body, #root { min-height: 100%; }
+html { background: #07111b; }
+body { margin: 0; background: #07111b; color: #eaf6ff; font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; }
+a { color: #63caff; }
+button:focus { outline: 2px solid rgba(99,202,255,.45); outline-offset: 2px; }
 
-a { color: #1f6feb; }
-
-button:focus { outline: 2px solid rgba(59,130,246,0.4); outline-offset: 2px; }
+/* ENAT HSI administrative visual system. Scoped to authenticated admin pages. */
+body:has(.enat-admin-menu) { background: #07111b; }
+body:has(.enat-admin-menu) .section { box-sizing: border-box; width: min(1180px, calc(100% - 40px)); margin: 0 auto; padding: 108px 0 48px; min-height: calc(100vh - 76px); background: transparent; color: #eaf6ff; }
+body:has(.enat-admin-menu) .section.narrow { width: min(980px, calc(100% - 40px)); }
+body:has(.enat-admin-menu) .section h1, body:has(.enat-admin-menu) .section h2, body:has(.enat-admin-menu) .section h3 { color: #eaf6ff; }
+body:has(.enat-admin-menu) .section > p, body:has(.enat-admin-menu) .section .muted, body:has(.enat-admin-menu) .section small { color: #8fa8ba; }
+body:has(.enat-admin-menu) .section .cards { gap: 16px; }
+body:has(.enat-admin-menu) .section .cards article, body:has(.enat-admin-menu) .section .portal-form { background: #0c1b29; color: #eaf6ff; border: 1px solid rgba(99,202,255,.18); border-radius: 16px; box-shadow: 0 10px 30px rgba(0,0,0,.16); }
+body:has(.enat-admin-menu) .section .portal-form { padding: 24px; }
+body:has(.enat-admin-menu) .section input, body:has(.enat-admin-menu) .section select, body:has(.enat-admin-menu) .section textarea { box-sizing: border-box; width: 100%; background: #07111b; color: #eaf6ff; border: 1px solid #365163; border-radius: 10px; padding: 11px 12px; }
+body:has(.enat-admin-menu) .section input::placeholder, body:has(.enat-admin-menu) .section textarea::placeholder { color: #718899; }
+body:has(.enat-admin-menu) .section label { color: #c8d9e3; }
+body:has(.enat-admin-menu) .section .portal-grid { gap: 14px; }
+body:has(.enat-admin-menu) .section .primary, body:has(.enat-admin-menu) .section button.primary { background: #63caff; color: #07111b; border: 0; border-radius: 10px; padding: 11px 18px; font-weight: 800; }
+body:has(.enat-admin-menu) .section button:not(.primary) { background: #0e2535; color: #d9e8ef; border: 1px solid #365163; border-radius: 10px; padding: 10px 14px; }
+body:has(.enat-admin-menu) .section .tag { color: #63caff; }
+.enat-admin-inner nav::-webkit-scrollbar { height: 5px; }
+.enat-admin-inner nav::-webkit-scrollbar-thumb { background: #365163; border-radius: 5px; }
+@media (max-width: 900px) { body:has(.enat-admin-menu) .section { width: min(100% - 24px, 1180px); padding-top: 92px; } body:has(.enat-admin-menu) .section.narrow { width: min(100% - 24px, 980px); } }
