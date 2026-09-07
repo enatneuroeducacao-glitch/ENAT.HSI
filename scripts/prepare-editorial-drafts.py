@@ -116,15 +116,7 @@ if old_title not in s:
     raise SystemExit("Editorial title marker not found; stopped safely.")
 s = s.replace(old_title, new_title, 1)
 
-# Add a visible recovery action in the editorial list whenever a draft exists.
-marker_view = '      {view === "editorial" && ('
-if marker_view not in s:
-    raise SystemExit("Editorial view marker not found; stopped safely.")
-recovery = r'''      {view === "editorial" && (
-        <>
-          {readEditorialDraft()?.title && <div style={{ marginBottom: 14, padding: 13, background: "#14283b", border: "1px solid #31506b", borderRadius: 8 }}><strong>Rascunho recuperável:</strong> {readEditorialDraft().title}<button onClick={() => setEditingEditorial({ ...emptyEditorial, ...readEditorialDraft() })} style={{ ...buttonStyle, marginLeft: 10 }}>Continuar edição</button><button onClick={() => { clearEditorialDraft(); setMsg("Rascunho local descartado."); }} style={{ ...buttonStyle, marginLeft: 8 }}>Descartar rascunho</button></div>}
-'''
-s = s.replace(marker_view, recovery, 1)
-
+# Do not inject additional JSX into the CMS list here. The draft is recovered when
+# the user opens "Nova publicação", which keeps the existing CMS structure intact.
 p.write_text(s, encoding="utf-8")
-print("Editorial drafts prepared: local persistence, server autosave, recovery and navigation protection.")
+print("Editorial drafts prepared: local persistence, server autosave and navigation protection.")
