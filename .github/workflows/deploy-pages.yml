@@ -10,10 +10,6 @@ permissions:
   pages: write
   id-token: write
 
-concurrency:
-  group: "pages"
-  cancel-in-progress: true
-
 env:
   VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL }}
   VITE_SUPABASE_PUBLISHABLE_KEY: ${{ secrets.VITE_SUPABASE_PUBLISHABLE_KEY }}
@@ -37,6 +33,9 @@ jobs:
 
       - name: Prepare public content editor
         run: python scripts/prepare-public-content-editor.py
+
+      - name: Prepare editorial drafts
+        run: python scripts/prepare-editorial-drafts.py
 
       - name: Build Vite application
         run: npm run build
