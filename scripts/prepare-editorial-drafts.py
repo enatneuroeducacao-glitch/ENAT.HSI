@@ -7,8 +7,6 @@ marker = 'function EditorialEditor({ editing, onSaved, onCancel }) {'
 if marker not in s:
     raise SystemExit("EditorialEditor marker not found; stopped safely.")
 
-# Persist every editorial draft locally. New articles are also mirrored to Supabase
-# as unpublished drafts so work survives navigation, refreshes and session hiccups.
 helper = r'''const EDITORIAL_DRAFT_KEY = "enat_editorial_draft_v2";
 const editorialDraftKey = (id) => id ? `${EDITORIAL_DRAFT_KEY}_${id}` : EDITORIAL_DRAFT_KEY;
 const readEditorialDraft = (id) => {
@@ -59,7 +57,10 @@ new_init = '''  const draftKey = editing?.id || null;
           id: draftId || undefined,
           editorial: payload,
         });
-        if (!draftId && data?.editorial?.id) setDraftId(data.editorial.id);
+        if (!draftId && data?.editorial?.id) {
+          clearEditorialDraft(null);
+          setDraftId(data.editorial.id);
+        }
         writeEditorialDraft(data?.editorial?.id || draftId || null, { ...form, id: data?.editorial?.id || draftId || undefined });
         setMsg("Rascunho salvo automaticamente.");
       } catch (error) {
@@ -103,6 +104,7 @@ new_save = '''      const recordId = editing?.id || draftId;
           tags: String(form.tags || "").split(",").map((x) => x.trim()).filter(Boolean),
         },
       });
+      clearEditorialDraft(null);
       clearEditorialDraft(recordId || data?.editorial?.id || null);
       setMsg(form.published === false ? "Rascunho salvo com sucesso." : "Publicação salva com sucesso.");
       onSaved(data.editorial);
@@ -118,4 +120,4 @@ if old_title not in s:
 s = s.replace(old_title, new_title, 1)
 
 p.write_text(s, encoding="utf-8")
-print("Editorial drafts prepared: local persistence for new and existing edits, server autosave for new drafts, and navigation protection.")
+print("Editorial drafts prepared: local persistence for new and existing edits, server autosave for new drafts, navigation protection, and cleanup of orphan drafts.")
