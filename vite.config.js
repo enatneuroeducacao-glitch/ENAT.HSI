@@ -1,7 +1,11 @@
+const base = process.env.VITE_BASE_PATH || "/";
+
 export default {
-  // Relative assets let the same build work on the GitHub Pages project URL
-  // (/ENAT.HSI/) and on the custom domain root (/).
-  base: "./",
+  // The public ENAT HSI site uses the custom domain root. A relative base
+  // ("./") breaks JavaScript/CSS asset URLs on nested SPA routes such as
+  // /artigo/<id>, because the browser then requests /artigo/assets/*.
+  // Keep the base absolute so every route loads the same Vite assets.
+  base,
   esbuild: {
     jsx: "automatic",
   },
