@@ -3,6 +3,7 @@ import {Link,useNavigate,useParams} from "react-router-dom";
 import {BrandingENAT} from "../components/BrandingENAT";
 import {SocialShareENAT} from "../components/SocialShareENAT";
 import {supabase} from "../lib/supabaseClient";
+import "./ArticleReaderENAT.css";
 
 function pickContent(row){
   return row?.content ?? row?.body ?? row?.content_html ?? row?.body_html ?? row?.text ?? "";
