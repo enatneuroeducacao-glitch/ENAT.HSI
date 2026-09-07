@@ -35,6 +35,9 @@ jobs:
       - name: Install dependencies
         run: npm install --no-audit --no-fund
 
+      - name: Prepare public content editor
+        run: python scripts/prepare-public-content-editor.py
+
       - name: Build Vite application
         run: npm run build
 
