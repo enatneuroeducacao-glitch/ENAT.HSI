@@ -6,7 +6,7 @@ const inputStyle={width:"100%",boxSizing:"border-box",minHeight:42,padding:"9px 
 const metricGrid={display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(180px,1fr))",gap:14};
 const sectionTitle={margin:"6px 0 18px",fontSize:20};
 const fmt=v=>Number(v||0).toLocaleString("pt-BR"); const date=v=>v?new Date(v).toLocaleString("pt-BR"):"—";
-function FilterSelect({label,value,onChange,children,disabled=false}){return <label style={{display:"grid",gap:6}}><span style={{...muted,letterSpacing:".08em"}}>{label}</span><select value={value} disabled={disabled} onChange={e=>onChange(e.target.value)} style={{...inputStyle,opacity:disabled?.55:1}}>{children}</select></label>}
+function FilterSelect({label,value,onChange,children,disabled=false}){return <label style={{display:"grid",gap:6}}><span style={{...muted,letterSpacing:".08em"}}>{label}</span><select value={value} disabled={disabled} onChange={e=>onChange(e.target.value)} style={{...inputStyle,opacity:disabled ? .55 : 1}}>{children}</select></label>}
 function Bar({value,max=1}){return <div style={{height:7,background:"#132c3c",borderRadius:99,marginTop:5}}><div style={{height:"100%",width:`${Math.round((value/max)*100)}%`,background:"#63caff",borderRadius:99}}/></div>}
 export function NeuroDriveAdmin(){
  const [data,setData]=useState(null),[loading,setLoading]=useState(true),[error,setError]=useState("");
