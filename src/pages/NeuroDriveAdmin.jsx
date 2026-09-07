@@ -1,93 +1,43 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { getNeuroDriveAdminSummary } from "../lib/neurodriveApi";
-import NeuroDriveLocalityFilter from "../components/NeuroDriveLocalityFilter";
-
-const cardStyle = { background: "#0c1b29", border: "1px solid rgba(99,202,255,.18)", borderRadius: 16, padding: 20 };
-const muted = { color: "#8fa8ba", fontSize: 13 };
-const metricGrid = { display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(180px,1fr))", gap: 14 };
-const sectionTitle = { margin: "6px 0 18px", fontSize: 20 };
-const formatNumber = (value) => Number(value || 0).toLocaleString("pt-BR");
-const formatDate = (value) => value ? new Date(value).toLocaleString("pt-BR") : "—";
-
-export function NeuroDriveAdmin() {
-  const [data, setData] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState("");
-  const [localityFilter, setLocalityFilter] = useState({ uf: "", municipality: "" });
-
-  const load = async () => { setLoading(true); setError(""); try { setData(await getNeuroDriveAdminSummary()); } catch (err) { setError(err?.message || "Não foi possível carregar o NeuroDrive."); } finally { setLoading(false); } };
-  useEffect(() => { load(); }, []);
-
-  const maxUf = Math.max(1, ...(data?.uf_distribution || []).map((x) => x.assessments));
-  const maxRisk = Math.max(1, ...(data?.risk_distribution || []).map((x) => x.count));
-  const instructor = data?.instructor_intelligence;
-  const maxInstructorUf = Math.max(1, ...(instructor?.instructor_uf_distribution || []).map((x) => x.instructors));
-  const sourceLabel = data?.source_name || "AssistenteInstrutorV6 → CMNT";
-  const lastSync = useMemo(() => data?.generated_at ? new Date(data.generated_at).toLocaleString("pt-BR") : "—", [data]);
-
-  const selectedLocality = useMemo(() => {
-    if (!instructor?.locality_distribution) return null;
-    const state = instructor.locality_distribution.find((x) => x.uf === localityFilter.uf);
-    if (!state) return null;
-    if (!localityFilter.municipality) return { uf: state.uf, municipality: "", instructors: state.instructors };
-    const city = state.municipalities.find((x) => x.name === localityFilter.municipality);
-    return city ? { uf: state.uf, municipality: city.name, instructors: city.instructors } : null;
-  }, [instructor, localityFilter]);
-
-  const localityHeadline = localityFilter.municipality ? `${localityFilter.municipality} · ${localityFilter.uf}` : localityFilter.uf ? `Estado de ${localityFilter.uf}` : "Brasil";
-
-  return <main style={{ minHeight: "100vh", background: "#07111b", color: "#eaf6ff", padding: "32px 24px", fontFamily: "Arial, sans-serif" }}>
-    <div style={{ maxWidth: 1180, margin: "0 auto" }}>
-      <header style={{ display: "flex", justifyContent: "space-between", gap: 20, alignItems: "flex-start", marginBottom: 28 }}>
-        <div><div style={{ ...muted, letterSpacing: ".12em" }}>PORTAL ADMINISTRATIVO · ENAT HSI</div><h1 style={{ margin: "8px 0", fontSize: 32 }}>NEURODRIVE INSTRUTOR ENAT-HSI</h1><p style={{ ...muted, maxWidth: 760, fontSize: 15, lineHeight: 1.6 }}>Integração administrativa com o Hub ENAT. A Central recebe indicadores agregados do NeuroDrive sem expor registros individuais, identificadores pessoais ou dados de aula no painel nacional.</p></div>
-        <button onClick={load} disabled={loading} style={{ border: "1px solid rgba(99,202,255,.35)", background: "#0e2535", color: "#bfeaff", borderRadius: 10, padding: "11px 16px", cursor: "pointer" }}>{loading ? "Atualizando…" : "↻ Atualizar"}</button>
-      </header>
-
-      {error && <div style={{ ...cardStyle, borderColor: "rgba(255,100,100,.35)", marginBottom: 20 }}>Falha na integração: {error}</div>}
-      {loading && !data && <div style={cardStyle}>Carregando indicadores do NeuroDrive…</div>}
-
-      {data && <>
-        <section style={{ ...cardStyle, marginBottom: 18 }}>
-          <div style={muted}>FILTRO DE LOCALIDADE · INTELIGÊNCIA TERRITORIAL</div>
-          <h2 style={sectionTitle}>Onde estão os instrutores cadastrados?</h2>
-          <p style={{ ...muted, marginTop: -8, marginBottom: 18 }}>Selecione uma UF para habilitar a busca de município. A seleção refina os indicadores administrativos sem abrir dados pessoais.</p>
-          <NeuroDriveLocalityFilter locality={instructor?.locality_distribution || []} onChange={setLocalityFilter} />
-          <div style={{ marginTop: 16, padding: "13px 15px", borderRadius: 10, background: "#091824", border: "1px solid rgba(99,202,255,.12)" }}>
-            <span style={muted}>LOCALIDADE SELECIONADA</span><strong style={{ display: "block", marginTop: 4, fontSize: 18 }}>{localityHeadline}</strong>
-            {localityFilter.uf && <span style={{ ...muted, display: "block", marginTop: 4 }}>{selectedLocality ? `${formatNumber(selectedLocality.instructors)} instrutor(es) cadastrado(s) nesta localidade.` : "Nenhum cadastro encontrado nesta seleção."}</span>}
-          </div>
-        </section>
-
-        <section style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(190px,1fr))", gap: 14, marginBottom: 18 }}>
-          <article style={cardStyle}><div style={muted}>AVALIAÇÕES RECEBIDAS</div><strong style={{ display: "block", fontSize: 34, marginTop: 8 }}>{formatNumber(data.totals.assessments)}</strong><span style={muted}>fonte autorizada: {sourceLabel}</span></article>
-          <article style={cardStyle}><div style={muted}>MÉDIA HSI</div><strong style={{ display: "block", fontSize: 34, marginTop: 8 }}>{data.totals.average_score ?? "—"}</strong><span style={muted}>somente avaliações com pontuação</span></article>
-          <article style={cardStyle}><div style={muted}>UFs COM DADOS HSI</div><strong style={{ display: "block", fontSize: 34, marginTop: 8 }}>{formatNumber(data.totals.ufs)}</strong><span style={muted}>distribuição agregada</span></article>
-          <article style={cardStyle}><div style={muted}>PRIVACIDADE</div><strong style={{ display: "block", fontSize: 22, marginTop: 13 }}>PII EXCLUÍDO</strong><span style={muted}>sem registros individuais</span></article>
-        </section>
-
-        <section style={{ ...cardStyle, marginBottom: 18 }}>
-          <div style={muted}>INTELIGÊNCIA DE ADESÃO · NEURODRIVE</div><h2 style={sectionTitle}>Instrutores cadastrados no sistema</h2><p style={{ ...muted, marginTop: -8, marginBottom: 18 }}>Este bloco responde quantos instrutores efetivamente criaram cadastro no NeuroDrive e permite acompanhar a adesão sem expor nomes, CPF, e-mail ou outros identificadores.</p>
-          <div style={metricGrid}>
-            <article style={cardStyle}><div style={muted}>INSTRUTORES CADASTRADOS</div><strong style={{ display: "block", fontSize: 34, marginTop: 8 }}>{formatNumber(instructor?.registered)}</strong><span style={muted}>cadastros com perfil de instrutor</span></article>
-            <article style={cardStyle}><div style={muted}>NOVOS · 7 DIAS</div><strong style={{ display: "block", fontSize: 34, marginTop: 8 }}>{formatNumber(instructor?.registrations_last_7_days)}</strong><span style={muted}>novos registros</span></article>
-            <article style={cardStyle}><div style={muted}>NOVOS · 30 DIAS</div><strong style={{ display: "block", fontSize: 34, marginTop: 8 }}>{formatNumber(instructor?.registrations_last_30_days)}</strong><span style={muted}>novos registros</span></article>
-            <article style={cardStyle}><div style={muted}>JÁ UTILIZARAM</div><strong style={{ display: "block", fontSize: 34, marginTop: 8 }}>{formatNumber(instructor?.with_activity)}</strong><span style={muted}>instrutores com aula registrada</span></article>
-            <article style={cardStyle}><div style={muted}>AINDA SEM ATIVIDADE</div><strong style={{ display: "block", fontSize: 34, marginTop: 8 }}>{formatNumber(instructor?.without_activity)}</strong><span style={muted}>cadastro sem aula registrada</span></article>
-            <article style={cardStyle}><div style={muted}>PERFIL COMPLETO</div><strong style={{ display: "block", fontSize: 34, marginTop: 8 }}>{instructor?.profile_completion_rate ?? 0}%</strong><span style={muted}>{formatNumber(instructor?.profile_complete)} perfis completos</span></article>
-          </div>
-        </section>
-
-        <section style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(320px,1fr))", gap: 18, marginBottom: 18 }}>
-          <article style={cardStyle}><div style={muted}>DISTRIBUIÇÃO TERRITORIAL · CADASTROS</div><h2 style={sectionTitle}>Instrutores por UF</h2>{(instructor?.instructor_uf_distribution || []).map((x) => <div key={x.uf} style={{ marginBottom: 12 }}><div style={{ display: "flex", justifyContent: "space-between", fontSize: 13 }}><span>{x.uf}</span><b>{formatNumber(x.instructors)}</b></div><div style={{ height: 7, background: "#132c3c", borderRadius: 99, marginTop: 5 }}><div style={{ height: "100%", width: `${Math.round(x.instructors / maxInstructorUf * 100)}%`, background: "#63caff", borderRadius: 99 }} /></div></div>)}{!(instructor?.instructor_uf_distribution || []).length && <span style={muted}>Nenhum cadastro de instrutor encontrado.</span>}<div style={{ ...muted, marginTop: 14 }}>{formatNumber(instructor?.states)} UFs · {formatNumber(instructor?.municipalities)} municípios representados</div></article>
-          <article style={cardStyle}><div style={muted}>BASE DA PLATAFORMA</div><h2 style={sectionTitle}>Atividade do NeuroDrive</h2><div style={metricGrid}><div><b style={{ display: "block", fontSize: 30 }}>{formatNumber(data.platform_intelligence?.students)}</b><span style={muted}>alunos cadastrados</span></div><div><b style={{ display: "block", fontSize: 30 }}>{formatNumber(data.platform_intelligence?.lessons)}</b><span style={muted}>aulas registradas</span></div><div><b style={{ display: "block", fontSize: 30 }}>{formatNumber(data.platform_intelligence?.institutional_active_instructors)}</b><span style={muted}>instrutores ENAT ativos</span></div><div><b style={{ display: "block", fontSize: 30 }}>{formatNumber(data.platform_intelligence?.institutional_instructors)}</b><span style={muted}>cadastros institucionais ENAT</span></div></div></article>
-        </section>
-
-        <section style={{ ...cardStyle, marginBottom: 18 }}><div style={muted}>ADESÃO RECENTE · DADOS NÃO IDENTIFICÁVEIS</div><h2 style={sectionTitle}>Últimos cadastros de instrutores</h2><div style={{ overflowX: "auto" }}><table style={{ width: "100%", borderCollapse: "collapse", fontSize: 13 }}><thead><tr>{["Data do cadastro","UF","Perfil","Atividade"].map((h) => <th key={h} style={{ textAlign: "left", padding: "10px 8px", borderBottom: "1px solid rgba(255,255,255,.1)", color: "#8fa8ba" }}>{h}</th>)}</tr></thead><tbody>{(instructor?.recent_registrations || []).map((x, i) => <tr key={`${x.created_at}-${i}`}>{[formatDate(x.created_at), x.uf || "—", x.profile_complete ? "Completo" : "Incompleto", x.has_activity ? "Com atividade" : "Sem atividade"].map((v, j) => <td key={j} style={{ padding: "10px 8px", borderBottom: "1px solid rgba(255,255,255,.06)" }}>{v}</td>)}</tr>)}</tbody></table></div>{!(instructor?.recent_registrations || []).length && <p style={muted}>Nenhum cadastro de instrutor encontrado.</p>}</section>
-
-        <section style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(320px,1fr))", gap: 18, marginBottom: 18 }}><article style={cardStyle}><div style={muted}>DISTRIBUIÇÃO TERRITORIAL</div><h2 style={sectionTitle}>Avaliações por UF</h2>{data.uf_distribution.map((x) => <div key={x.uf} style={{ marginBottom: 12 }}><div style={{ display: "flex", justifyContent: "space-between", fontSize: 13 }}><span>{x.uf}</span><b>{x.assessments}</b></div><div style={{ height: 7, background: "#132c3c", borderRadius: 99, marginTop: 5 }}><div style={{ height: "100%", width: `${Math.round(x.assessments / maxUf * 100)}%`, background: "#63caff", borderRadius: 99 }} /></div></div>)}{!data.uf_distribution.length && <span style={muted}>Nenhum dado recebido ainda.</span>}</article><article style={cardStyle}><div style={muted}>CLASSIFICAÇÃO DE RISCO</div><h2 style={sectionTitle}>Distribuição</h2>{data.risk_distribution.map((x) => <div key={x.risk} style={{ marginBottom: 12 }}><div style={{ display: "flex", justifyContent: "space-between", fontSize: 13 }}><span>{x.risk}</span><b>{x.count}</b></div><div style={{ height: 7, background: "#132c3c", borderRadius: 99, marginTop: 5 }}><div style={{ height: "100%", width: `${Math.round(x.count / maxRisk * 100)}%`, background: "#63caff", borderRadius: 99 }} /></div></div>)}{!data.risk_distribution.length && <span style={muted}>Nenhuma classificação disponível.</span>}</article></section>
-
-        <section style={cardStyle}><div style={muted}>ÚLTIMAS ENTRADAS · DADOS NÃO IDENTIFICÁVEIS</div><h2 style={{ margin: "6px 0 16px" }}>Atividade NeuroDrive</h2><div style={{ overflowX: "auto" }}><table style={{ width: "100%", borderCollapse: "collapse", fontSize: 13 }}><thead><tr>{["Data","UF","Faixa etária","Categoria","Instrumento","Score","Risco"].map((h) => <th key={h} style={{ textAlign: "left", padding: "10px 8px", borderBottom: "1px solid rgba(255,255,255,.1)", color: "#8fa8ba" }}>{h}</th>)}</tr></thead><tbody>{data.recent.map((x, i) => <tr key={`${x.observed_at}-${i}`}>{[x.observed_at ? new Date(x.observed_at).toLocaleString("pt-BR") : "—", x.uf || "—", x.age_band || "—", x.cnh_category || "—", `${x.instrument || "HSI-DOTH-P"}${x.instrument_version ? ` v${x.instrument_version}` : ""}`, x.total_score ?? "—", x.risk_class || "—"].map((v, j) => <td key={j} style={{ padding: "10px 8px", borderBottom: "1px solid rgba(255,255,255,.06)" }}>{v}</td>)}</tr>)}</tbody></table></div>{!data.recent.length && <p style={muted}>O NeuroDrive ainda não enviou avaliações para o Hub.</p>}<div style={{ ...muted, marginTop: 14 }}>Última leitura da Central: {lastSync}</div></section>
-      </>}
-    </div>
-  </main>;
+const cardStyle={background:"#0c1b29",border:"1px solid rgba(99,202,255,.18)",borderRadius:16,padding:20};
+const muted={color:"#8fa8ba",fontSize:13};
+const inputStyle={width:"100%",boxSizing:"border-box",minHeight:42,padding:"9px 11px",borderRadius:9,border:"1px solid rgba(99,202,255,.2)",background:"#091824",color:"#eaf6ff",outline:"none"};
+const metricGrid={display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(180px,1fr))",gap:14};
+const sectionTitle={margin:"6px 0 18px",fontSize:20};
+const fmt=v=>Number(v||0).toLocaleString("pt-BR"); const date=v=>v?new Date(v).toLocaleString("pt-BR"):"—";
+function FilterSelect({label,value,onChange,children,disabled=false}){return <label style={{display:"grid",gap:6}}><span style={{...muted,letterSpacing:".08em"}}>{label}</span><select value={value} disabled={disabled} onChange={e=>onChange(e.target.value)} style={{...inputStyle,opacity:disabled?.55:1}}>{children}</select></label>}
+function Bar({value,max=1}){return <div style={{height:7,background:"#132c3c",borderRadius:99,marginTop:5}}><div style={{height:"100%",width:`${Math.round((value/max)*100)}%`,background:"#63caff",borderRadius:99}}/></div>}
+export function NeuroDriveAdmin(){
+ const [data,setData]=useState(null),[loading,setLoading]=useState(true),[error,setError]=useState("");
+ const [filters,setFilters]=useState({uf:"",municipality:"",period:"all",employment:"",teaching:"",activity:"all"});
+ const load=async(next=filters)=>{setLoading(true);setError("");try{setData(await getNeuroDriveAdminSummary(next));}catch(e){setError(e?.message||"Não foi possível carregar o NeuroDrive.");}finally{setLoading(false)}};
+ useEffect(()=>{load();},[]);
+ const update=(key,value)=>{const next={...filters,[key]:value};if(key==="uf")next.municipality="";setFilters(next);load(next)};
+ const locality=data?.instructor_intelligence?.locality_distribution||[]; const selectedState=locality.find(x=>x.uf===filters.uf); const municipalities=selectedState?.municipalities||[];
+ const municipalityOptions=useMemo(()=>municipalities.map(x=>x.name),[municipalities]); const instructor=data?.instructor_intelligence;
+ const maxUf=Math.max(1,...(data?.uf_distribution||[]).map(x=>x.assessments)); const maxInstructorUf=Math.max(1,...(instructor?.instructor_uf_distribution||[]).map(x=>x.instructors)); const maxCity=Math.max(1,...municipalities.map(x=>x.instructors));
+ const hasFilters=Object.values(filters).some(v=>v&&v!=="all"); const clear=()=>{const f={uf:"",municipality:"",period:"all",employment:"",teaching:"",activity:"all"};setFilters(f);load(f)};
+ const headline=filters.municipality?`${filters.municipality} · ${filters.uf}`:filters.uf?`Estado de ${filters.uf}`:"Brasil";
+ return <main style={{minHeight:"100vh",background:"#07111b",color:"#eaf6ff",padding:"32px 24px",fontFamily:"Arial,sans-serif"}}><div style={{maxWidth:1180,margin:"0 auto"}}>
+ <header style={{display:"flex",justifyContent:"space-between",gap:20,alignItems:"flex-start",marginBottom:28}}><div><div style={{...muted,letterSpacing:".12em"}}>PORTAL ADMINISTRATIVO · ENAT HSI</div><h1 style={{margin:"8px 0",fontSize:32}}>NEURODRIVE INSTRUTOR ENAT-HSI</h1><p style={{...muted,maxWidth:800,fontSize:15,lineHeight:1.6}}>Inteligência territorial administrativa do NeuroDrive. Os indicadores são agregados e não exibem nomes, CPF, e-mail ou registros individuais.</p></div><button onClick={()=>load()} disabled={loading} style={{border:"1px solid rgba(99,202,255,.35)",background:"#0e2535",color:"#bfeaff",borderRadius:10,padding:"11px 16px",cursor:"pointer"}}>{loading?"Atualizando…":"↻ Atualizar"}</button></header>
+ {error&&<div style={{...cardStyle,borderColor:"rgba(255,100,100,.35)",marginBottom:20}}>Falha na integração: {error}</div>}{loading&&!data&&<div style={cardStyle}>Carregando inteligência territorial…</div>}
+ {data&&<>
+ <section style={{...cardStyle,marginBottom:18}}><div style={muted}>INTELIGÊNCIA TERRITORIAL · FILTROS</div><h2 style={sectionTitle}>Brasil → UF → Município</h2><p style={{...muted,marginTop:-8,marginBottom:18}}>Selecione uma UF para restringir os municípios. Use a busca para localizar uma cidade e os demais filtros para aprofundar a leitura.</p><div style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(190px,1fr))",gap:12,alignItems:"end"}}>
+ <FilterSelect label="ESTADO (UF)" value={filters.uf} onChange={v=>update("uf",v)}><option value="">Todos os estados</option>{locality.map(x=><option key={x.uf} value={x.uf}>{x.uf} · {fmt(x.instructors)}</option>)}</FilterSelect>
+ <label style={{display:"grid",gap:6}}><span style={{...muted,letterSpacing:".08em"}}>BUSCAR MUNICÍPIO</span><input disabled={!filters.uf} value={filters.municipality} onChange={e=>setFilters(f=>({...f,municipality:e.target.value}))} onKeyDown={e=>{if(e.key==="Enter")load({...filters,municipality:e.currentTarget.value})}} placeholder={filters.uf?"Digite parte do município…":"Selecione uma UF primeiro"} list="neurodrive-municipalities" style={{...inputStyle,opacity:filters.uf?1:.55}}/><datalist id="neurodrive-municipalities">{municipalityOptions.map(x=><option key={x} value={x}/>)}</datalist></label>
+ <FilterSelect label="MUNICÍPIO" value={filters.municipality} onChange={v=>update("municipality",v)} disabled={!filters.uf}><option value="">Todos os municípios</option>{municipalities.map(x=><option key={x.name} value={x.name}>{x.name} · {fmt(x.instructors)}</option>)}</FilterSelect>
+ <FilterSelect label="PERÍODO" value={filters.period} onChange={v=>update("period",v)}><option value="all">Todo o período</option><option value="7d">Últimos 7 dias</option><option value="30d">Últimos 30 dias</option><option value="90d">Últimos 90 dias</option><option value="365d">Últimos 365 dias</option></FilterSelect>
+ <FilterSelect label="ATIVIDADE" value={filters.activity} onChange={v=>update("activity",v)}><option value="all">Todos</option><option value="active">Com atividade</option><option value="inactive">Sem atividade</option></FilterSelect>
+ <FilterSelect label="VÍNCULO" value={filters.employment} onChange={v=>update("employment",v)}><option value="">Todos</option>{(instructor?.employment_distribution||[]).map(x=><option key={x.name} value={x.name}>{x.name} · {fmt(x.count)}</option>)}</FilterSelect>
+ <FilterSelect label="TIPO DE ENSINO" value={filters.teaching} onChange={v=>update("teaching",v)}><option value="">Todos</option>{(instructor?.teaching_distribution||[]).map(x=><option key={x.name} value={x.name}>{x.name} · {fmt(x.count)}</option>)}</FilterSelect>
+ <button type="button" onClick={clear} disabled={!hasFilters} style={{...inputStyle,cursor:hasFilters?"pointer":"default",textAlign:"center",opacity:hasFilters?1:.55}}>Limpar filtros</button></div>
+ <div style={{marginTop:16,padding:"13px 15px",borderRadius:10,background:"#091824",border:"1px solid rgba(99,202,255,.12)"}}><span style={muted}>LOCALIDADE SELECIONADA</span><strong style={{display:"block",marginTop:4,fontSize:18}}>{headline}</strong><span style={{...muted,display:"block",marginTop:4}}>{filters.uf?`${fmt(selectedState?.instructors||0)} instrutor(es) no recorte.`:"Visão nacional."}</span></div></section>
+ <section style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(190px,1fr))",gap:14,marginBottom:18}}>{[["INSTRUTORES NO RECORTE",fmt(instructor?.registered),`${fmt(instructor?.total_registered_unfiltered)} no total`],["COM ATIVIDADE",fmt(instructor?.with_activity),"aulas registradas"],["SEM ATIVIDADE",fmt(instructor?.without_activity),"sem aula registrada"],["PERFIL COMPLETO",`${instructor?.profile_completion_rate??0}%`,`${fmt(instructor?.profile_complete)} perfis`],["AVALIAÇÕES HSI",fmt(data.totals.assessments),`média ${data.totals.average_score??"—"}`],["AULAS NO RECORTE",fmt(data.platform_intelligence?.lessons),"sem cancelamentos"]].map(([a,b,c])=><article key={a} style={cardStyle}><div style={muted}>{a}</div><strong style={{display:"block",fontSize:34,marginTop:8}}>{b}</strong><span style={muted}>{c}</span></article>)}</section>
+ <section style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(320px,1fr))",gap:18,marginBottom:18}}><article style={cardStyle}><div style={muted}>MAPA TERRITORIAL · CADASTROS</div><h2 style={sectionTitle}>{filters.uf?`Municípios de ${filters.uf}`:"Instrutores por UF"}</h2>{filters.uf?municipalities.map(x=><div key={x.name} style={{marginBottom:12}}><div style={{display:"flex",justifyContent:"space-between",fontSize:13}}><span>{x.name}</span><b>{fmt(x.instructors)}</b></div><Bar value={x.instructors} max={maxCity}/></div>):(instructor?.instructor_uf_distribution||[]).map(x=><div key={x.uf} style={{marginBottom:12}}><div style={{display:"flex",justifyContent:"space-between",fontSize:13}}><span>{x.uf}</span><b>{fmt(x.instructors)}</b></div><Bar value={x.instructors} max={maxInstructorUf}/></div>)}{filters.uf&&!municipalities.length&&<span style={muted}>Nenhum município encontrado.</span>}<div style={{...muted,marginTop:14}}>{fmt(instructor?.states)} UFs · {fmt(instructor?.municipalities)} municípios no recorte</div></article>
+ <article style={cardStyle}><div style={muted}>HSI · DISTRIBUIÇÃO TERRITORIAL</div><h2 style={sectionTitle}>Avaliações por UF</h2>{(data.uf_distribution||[]).map(x=><div key={x.uf} style={{marginBottom:12}}><div style={{display:"flex",justifyContent:"space-between",fontSize:13}}><span>{x.uf}</span><b>{fmt(x.assessments)}</b></div><Bar value={x.assessments} max={maxUf}/></div>)}{!data.uf_distribution?.length&&<span style={muted}>Nenhum dado HSI no recorte.</span>}</article></section>
+ {filters.uf&&<section style={{...cardStyle,marginBottom:18}}><div style={muted}>LEITURA LOCAL</div><h2 style={sectionTitle}>Municípios de {filters.uf}</h2><div style={{...metricGrid,gridTemplateColumns:"repeat(auto-fit,minmax(220px,1fr))"}}>{municipalities.slice(0,12).map(x=><button key={x.name} onClick={()=>update("municipality",x.name)} style={{...cardStyle,textAlign:"left",cursor:"pointer",color:"#eaf6ff"}}><div style={muted}>MUNICÍPIO</div><strong style={{display:"block",fontSize:18,marginTop:6}}>{x.name}</strong><span style={muted}>{fmt(x.instructors)} instrutor(es)</span></button>)}</div>{municipalities.length>12&&<div style={{...muted,marginTop:12}}>Exibindo 12 de {fmt(municipalities.length)} municípios; use a busca/seleção acima para os demais.</div>}</section>}
+ <section style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(320px,1fr))",gap:18,marginBottom:18}}><article style={cardStyle}><div style={muted}>CLASSIFICAÇÃO DE RISCO</div><h2 style={sectionTitle}>Distribuição HSI</h2>{(data.risk_distribution||[]).map(x=><div key={x.risk} style={{marginBottom:12}}><div style={{display:"flex",justifyContent:"space-between",fontSize:13}}><span>{x.risk}</span><b>{fmt(x.count)}</b></div><Bar value={x.count} max={Math.max(1,...(data.risk_distribution||[]).map(r=>r.count))}/></div>)}</article><article style={cardStyle}><div style={muted}>PERFIL PROFISSIONAL</div><h2 style={sectionTitle}>Vínculo e tipo de ensino</h2>{(instructor?.employment_distribution||[]).slice(0,8).map(x=><div key={x.name} style={{marginBottom:12}}><div style={{display:"flex",justifyContent:"space-between",fontSize:13}}><span>{x.name}</span><b>{fmt(x.count)}</b></div><Bar value={x.count} max={Math.max(1,...(instructor?.employment_distribution||[]).map(r=>r.count))}/></div>)}</article></section>
+ <section style={cardStyle}><div style={muted}>DADOS RECENTES · NÃO IDENTIFICÁVEIS</div><h2 style={{margin:"6px 0 16px"}}>Atividade NeuroDrive</h2><div style={{overflowX:"auto"}}><table style={{width:"100%",borderCollapse:"collapse",fontSize:13}}><thead><tr>{["Data","UF","Município","Faixa etária","Categoria","Instrumento","Score","Risco"].map(h=><th key={h} style={{textAlign:"left",padding:"10px 8px",borderBottom:"1px solid rgba(255,255,255,.1)",color:"#8fa8ba"}}>{h}</th>)}</tr></thead><tbody>{(data.recent||[]).map((x,i)=><tr key={`${x.observed_at}-${i}`}>{[date(x.observed_at),x.uf||"—",x.municipality||"—",x.age_band||"—",x.cnh_category||"—",`${x.instrument||"HSI-DOTH-P"}${x.instrument_version?` v${x.instrument_version}`:""}`,x.total_score??"—",x.risk_class||"—"].map((v,j)=><td key={j} style={{padding:"10px 8px",borderBottom:"1px solid rgba(255,255,255,.06)"}}>{v}</td>)}</tr>)}</tbody></table></div>{!data.recent?.length&&<p style={muted}>Nenhum dado no recorte.</p>}<div style={{...muted,marginTop:14}}>Última leitura: {date(data.generated_at)}</div></section>
+ </>}</div></main>;
 }
