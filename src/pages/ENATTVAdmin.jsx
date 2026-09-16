@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { supabase } from "../lib/supabaseClient";
+import { useAuth } from "../context/AuthContext";
 import "./ENATTVAdmin.css";
 
 const STATUS = {
@@ -21,12 +22,15 @@ function subject(row) {
 }
 
 export function ENATTVAdmin() {
+  const { session } = useAuth();
   const [rows, setRows] = useState([]);
   const [filter, setFilter] = useState("all");
   const [selected, setSelected] = useState(null);
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState("");
   const [query, setQuery] = useState("");
+  const [editor, setEditor] = useState(null);
+  const [attachmentBusy, setAttachmentBusy] = useState(null);
 
   const load = async () => {
     setMessage("");
@@ -59,6 +63,7 @@ export function ENATTVAdmin() {
   }, { total: rows.length }), [rows]);
 
   const updateStatus = async (id, status) => {
+    if (!supabase) return;
     setBusy(true);
     setMessage("");
     const { error } = await supabase.from("enat_public_inbox").update({ status, updated_at: new Date().toISOString() }).eq("id", id);
@@ -68,6 +73,86 @@ export function ENATTVAdmin() {
       setSelected((old) => old?.id === id ? { ...old, status } : old);
     }
     setBusy(false);
+  };
+
+  const openEditor = (row) => {
+    setEditor({
+      title: subject(row),
+      summary: row.summary || messageText(row).slice(0, 240),
+      content: messageText(row),
+      category: row.category || "ENAT TV",
+      image_url: row.image_url || "",
+      featured: false,
+    });
+    setMessage("");
+  };
+
+  const publishSelected = async () => {
+    if (!selected || !editor || selected.status !== "approved") {
+      setMessage("A pauta precisa estar aprovada antes da publicação.");
+      return;
+    }
+    if (!session?.access_token) {
+      setMessage("Sessão administrativa não encontrada.");
+      return;
+    }
+    setBusy(true);
+    setMessage("Publicando na ENAT TV…");
+    try {
+      const baseUrl = import.meta.env.VITE_SUPABASE_URL;
+      const response = await fetch(`${baseUrl}/functions/v1/manage-public-content`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${session.access_token}`,
+        },
+        body: JSON.stringify({
+          action: "create_editorial",
+          editorial: {
+            kind: "article",
+            title: editor.title,
+            summary: editor.summary,
+            content: editor.content,
+            category: editor.category,
+            image_url: editor.image_url || null,
+            featured: Boolean(editor.featured),
+            published: true,
+            author_name: selected.name || "ENAT TV",
+            tags: ["ENAT TV"],
+          },
+        }),
+      });
+      const result = await response.json().catch(() => ({}));
+      if (!response.ok || result.error) throw new Error(result.error || "Não foi possível publicar o conteúdo.");
+      await updateStatus(selected.id, "published");
+      setMessage("Conteúdo publicado na ENAT TV e pauta marcada como publicada.");
+      setEditor(null);
+    } catch (error) {
+      setMessage(error.message || "Falha na publicação.");
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const openAttachment = async (file) => {
+    if (!session?.access_token || !file?.path) return;
+    setAttachmentBusy(file.path);
+    setMessage("");
+    try {
+      const baseUrl = import.meta.env.VITE_SUPABASE_URL;
+      const response = await fetch(`${baseUrl}/functions/v1/enat-public-inbox`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${session.access_token}` },
+        body: JSON.stringify({ action: "attachment_url", path: file.path }),
+      });
+      const result = await response.json().catch(() => ({}));
+      if (!response.ok || result.error || !result.url) throw new Error(result.error || "Não foi possível abrir o anexo.");
+      window.open(result.url, "_blank", "noopener,noreferrer");
+    } catch (error) {
+      setMessage(error.message || "Falha ao abrir o anexo.");
+    } finally {
+      setAttachmentBusy(null);
+    }
   };
 
   return (
@@ -105,7 +190,7 @@ export function ENATTVAdmin() {
 
         <div className="tv-admin-list">
           {visibleRows.map((row) => (
-            <button key={row.id} className="tv-admin-row" onClick={() => setSelected(row)}>
+            <button key={row.id} className="tv-admin-row" onClick={() => { setSelected(row); setEditor(null); }}>
               <div>
                 <b>{subject(row)}</b>
                 <p>{row.name || "Sem nome"} · {row.email || "sem e-mail"}</p>
@@ -126,14 +211,30 @@ export function ENATTVAdmin() {
               <button onClick={() => setSelected(null)}>Fechar</button>
             </div>
             <div className="tv-meta"><b>Remetente</b><span>{selected.name || "—"}</span><b>E-mail</b><span>{selected.email || "—"}</span><b>Recebido</b><span>{selected.created_at ? new Date(selected.created_at).toLocaleString("pt-BR") : "—"}</span></div>
-            <h3>Conteúdo</h3>
+            <h3>Conteúdo recebido</h3>
             <p className="tv-content">{messageText(selected) || "Sem conteúdo informado."}</p>
-            {Array.isArray(selected.attachments) && selected.attachments.length > 0 && <div><h3>📎 Anexos</h3><div className="tv-attachments">{selected.attachments.map((file, index) => <div key={file.path || index}>📄 {file.name || `Arquivo ${index + 1}`}</div>)}</div></div>}
+
+            {Array.isArray(selected.attachments) && selected.attachments.length > 0 && <div><h3>📎 Anexos</h3><div className="tv-attachments">{selected.attachments.map((file, index) => <div key={file.path || index}>📄 {file.name || `Arquivo ${index + 1}`} <button type="button" onClick={() => openAttachment(file)} disabled={attachmentBusy === file.path}>{attachmentBusy === file.path ? "Abrindo…" : "Abrir"}</button></div>)}</div></div>}
+
             <div className="tv-workflow">
               <b>Fluxo editorial</b>
               <div>{STATUS_ORDER.map((status) => <button key={status} disabled={busy || selected.status === status} className={selected.status === status ? "active" : ""} onClick={() => updateStatus(selected.id, status)}>{STATUS[status]}</button>)}</div>
             </div>
-            <p className="tv-note">A aprovação/publicação acima altera o status da pauta na caixa editorial. A publicação audiovisual final depende da inclusão do vídeo, imagem e demais metadados no canal de distribuição escolhido pela ENAT.</p>
+
+            {selected.status === "approved" && !editor && <button className="tv-admin-publish" disabled={busy} onClick={() => openEditor(selected)}>✍️ Preparar publicação</button>}
+
+            {editor && <div className="tv-publish-editor">
+              <h3>Publicar na ENAT TV</h3>
+              <label>Título<input value={editor.title} onChange={(e) => setEditor({ ...editor, title: e.target.value })} /></label>
+              <label>Resumo<textarea rows="3" value={editor.summary} onChange={(e) => setEditor({ ...editor, summary: e.target.value })} /></label>
+              <label>Conteúdo<textarea rows="9" value={editor.content} onChange={(e) => setEditor({ ...editor, content: e.target.value })} /></label>
+              <label>Categoria<input value={editor.category} onChange={(e) => setEditor({ ...editor, category: e.target.value })} /></label>
+              <label>Imagem de capa (URL, opcional)<input value={editor.image_url} onChange={(e) => setEditor({ ...editor, image_url: e.target.value })} /></label>
+              <label><input type="checkbox" checked={editor.featured} onChange={(e) => setEditor({ ...editor, featured: e.target.checked })} /> Destacar publicação</label>
+              <div className="tv-admin-publish-actions"><button type="button" onClick={() => setEditor(null)} disabled={busy}>Cancelar</button><button type="button" className="tv-admin-publish" onClick={publishSelected} disabled={busy || !editor.title.trim() || !editor.content.trim()}>{busy ? "Publicando…" : "📺 Publicar na ENAT TV"}</button></div>
+            </div>}
+
+            <p className="tv-note">A publicação editorial é registrada no banco público da ENAT e a pauta passa para “Publicado”. Vídeos, transmissões ao vivo e arquivos de mídia pesada continuam dependendo do canal audiovisual escolhido pela ENAT.</p>
           </section>
         </div>
       )}
