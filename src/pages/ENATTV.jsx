@@ -15,21 +15,37 @@ const PROGRAMS = [
   { key: "ENAT Play", icon: "📺", description: "Biblioteca de vídeos para assistir sob demanda." },
 ];
 
+const LIVE_EMBED_URL = import.meta.env.VITE_ENAT_TV_LIVE_EMBED_URL || "";
+
 export function ENATTV() {
-  const navigate = useNavigate(); const [searchParams] = useSearchParams();
+  const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const selectedCategory = searchParams.get("categoria") || "";
   const selectedContentId = searchParams.get("conteudo") || "";
-  const [form, setForm] = useState({ name: "", email: "", subject: "", message: "" }); const [files, setFiles] = useState([]); const [consent, setConsent] = useState(false); const [status, setStatus] = useState(""); const [sending, setSending] = useState(false); const [editorial, setEditorial] = useState([]); const [mediaUrls, setMediaUrls] = useState({}); const [showSubmission, setShowSubmission] = useState(false);
+  const [form, setForm] = useState({ name: "", email: "", subject: "", message: "" });
+  const [files, setFiles] = useState([]);
+  const [consent, setConsent] = useState(false);
+  const [status, setStatus] = useState("");
+  const [sending, setSending] = useState(false);
+  const [editorial, setEditorial] = useState([]);
+  const [mediaUrls, setMediaUrls] = useState({});
+  const [showSubmission, setShowSubmission] = useState(false);
 
   useEffect(() => {
     const loadEditorial = async () => {
       if (!supabase) return;
       const { data } = await supabase.from("enat_public_editorial").select("id,title,summary,content,category,image_url,tags,featured,published,published_at").eq("published", true).order("featured", { ascending: false }).order("published_at", { ascending: false });
-      const rows = data || []; setEditorial(rows);
+      const rows = data || [];
+      setEditorial(rows);
       const mediaRows = rows.filter((item) => Array.isArray(item.tags) && item.tags.some((tag) => String(tag).startsWith("submission:")));
       if (!mediaRows.length) return;
       const results = await Promise.all(mediaRows.map(async (item) => {
-        try { const baseUrl = import.meta.env.VITE_SUPABASE_URL; const response = await fetch(`${baseUrl}/functions/v1/enat-public-inbox`, { method: "POST", headers: { apikey: import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY, "Content-Type": "application/json" }, body: JSON.stringify({ action: "published_media_url", id: item.id }) }); const result = await response.json().catch(() => ({})); return response.ok && result?.ok ? [item.id, result] : null; } catch { return null; }
+        try {
+          const baseUrl = import.meta.env.VITE_SUPABASE_URL;
+          const response = await fetch(`${baseUrl}/functions/v1/enat-public-inbox`, { method: "POST", headers: { apikey: import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY, "Content-Type": "application/json" }, body: JSON.stringify({ action: "published_media_url", id: item.id }) });
+          const result = await response.json().catch(() => ({}));
+          return response.ok && result?.ok ? [item.id, result] : null;
+        } catch { return null; }
       }));
       setMediaUrls(Object.fromEntries(results.filter(Boolean)));
     };
@@ -40,29 +56,71 @@ export function ENATTV() {
   const selectedContent = useMemo(() => filteredEditorial.find((item) => item.id === selectedContentId) || null, [filteredEditorial, selectedContentId]);
   const sidebarArticles = useMemo(() => filteredEditorial.filter((item) => !mediaUrls[item.id]?.type?.startsWith("video/")), [filteredEditorial, mediaUrls]);
   const mainMedia = useMemo(() => filteredEditorial.filter((item) => mediaUrls[item.id]?.type?.startsWith("video/")), [filteredEditorial, mediaUrls]);
-  const handleFiles = (event) => { const selected = Array.from(event.target.files || []); const invalidType = selected.find((file) => !ALLOWED_EXTENSIONS.has(file.name.split(".").pop()?.toLowerCase() || "")); if (invalidType) { setFiles([]); setStatus(`Formato não permitido: ${invalidType.name}.`); event.target.value = ""; return; } const oversized = selected.find((file) => file.size > MAX_FILE_SIZE); if (oversized) { setFiles([]); setStatus(`O arquivo ${oversized.name} excede o limite de 15 MB.`); event.target.value = ""; return; } if (selected.length > 5) { setFiles([]); setStatus("É permitido anexar no máximo 5 arquivos."); event.target.value = ""; return; } setFiles(selected); setStatus(""); };
-  const submit = async (event) => { event.preventDefault(); if (!consent) { setStatus("É necessário concordar com o uso dos dados para análise e contato sobre esta submissão."); return; } if (!supabase) { setStatus("Canal de recebimento não configurado."); return; } setSending(true); setStatus("Enviando material…"); try { const data = new FormData(); Object.entries({ ...form, kind: "tv_submission", consent: "true" }).forEach(([key, value]) => data.append(key, value)); files.forEach((file) => data.append("files", file, file.name)); const endpoint = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/enat-public-inbox`; const response = await fetch(endpoint, { method: "POST", headers: { apikey: import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY }, body: data }); const result = await response.json().catch(() => ({})); if (!response.ok || !result?.ok) throw new Error(result?.error || `Falha no recebimento (HTTP ${response.status}).`); setForm({ name: "", email: "", subject: "", message: "" }); setFiles([]); setConsent(false); setStatus("Material recebido. A equipe editorial da ENAT TV fará a análise."); } catch (error) { setStatus(error.message || "Falha no envio."); } finally { setSending(false); } };
+
+  const handleFiles = (event) => {
+    const selected = Array.from(event.target.files || []);
+    const invalidType = selected.find((file) => !ALLOWED_EXTENSIONS.has(file.name.split(".").pop()?.toLowerCase() || ""));
+    if (invalidType) { setFiles([]); setStatus(`Formato não permitido: ${invalidType.name}.`); event.target.value = ""; return; }
+    const oversized = selected.find((file) => file.size > MAX_FILE_SIZE);
+    if (oversized) { setFiles([]); setStatus(`O arquivo ${oversized.name} excede o limite de 15 MB.`); event.target.value = ""; return; }
+    if (selected.length > 5) { setFiles([]); setStatus("É permitido anexar no máximo 5 arquivos."); event.target.value = ""; return; }
+    setFiles(selected); setStatus("");
+  };
+
+  const submit = async (event) => {
+    event.preventDefault();
+    if (!consent) { setStatus("É necessário concordar com o uso dos dados para análise e contato sobre esta submissão."); return; }
+    if (!supabase) { setStatus("Canal de recebimento não configurado."); return; }
+    setSending(true); setStatus("Enviando material…");
+    try {
+      const data = new FormData();
+      Object.entries({ ...form, kind: "tv_submission", consent: "true" }).forEach(([key, value]) => data.append(key, value));
+      files.forEach((file) => data.append("files", file, file.name));
+      const endpoint = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/enat-public-inbox`;
+      const response = await fetch(endpoint, { method: "POST", headers: { apikey: import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY }, body: data });
+      const result = await response.json().catch(() => ({}));
+      if (!response.ok || !result?.ok) throw new Error(result?.error || `Falha no recebimento (HTTP ${response.status}).`);
+      setForm({ name: "", email: "", subject: "", message: "" }); setFiles([]); setConsent(false); setStatus("Material recebido. A equipe editorial da ENAT TV fará a análise.");
+    } catch (error) { setStatus(error.message || "Falha no envio."); }
+    finally { setSending(false); }
+  };
 
   return <main className="enat-tv-page">
     <nav className="enat-tv-topnav" aria-label="Navegação da ENAT TV">
       <Link to="/tv" className="enat-tv-topnav-brand">ENAT TV</Link>
       <div className="enat-tv-topnav-links">
-        {PROGRAMS.map((program) => <Link key={program.key} to={`/tv?categoria=${encodeURIComponent(program.key)}`} className={selectedCategory === program.key ? "active" : ""}>{program.icon} <span>{program.key.replace("ENAT ", "")}</span></Link>)}
+        {PROGRAMS.map((program) => <Link key={program.key} to={program.key === "ENAT TV Ao Vivo" ? "/tv#ao-vivo" : `/tv?categoria=${encodeURIComponent(program.key)}`} className={selectedCategory === program.key ? "active" : ""}>{program.icon} <span>{program.key.replace("ENAT ", "")}</span></Link>)}
         <button type="button" className="enat-tv-submit-button" onClick={() => { setShowSubmission(true); setStatus(""); }}>📤 Enviar material</button>
       </div>
     </nav>
-    <section className="enat-tv-hero"><div className="enat-tv-brand"><BrandingENAT variant="header" /></div><span className="enat-tv-eyebrow">ENAT TV</span><h1>Neurociência, educação e segurança no trânsito.</h1><p>O espaço audiovisual do ENAT para entrevistas, aulas, ciência, eventos, notícias e conteúdos sobre comportamento humano no trânsito.</p><div className="enat-tv-actions"><button className="enat-tv-primary" onClick={() => navigate("/portal")}>Voltar ao Portal ENAT</button><span className="enat-tv-status">● Em implantação</span></div></section>
-    <section className="enat-tv-grid" aria-label="Programação da ENAT TV">{PROGRAMS.map((program) => <Link key={program.key} to={`/tv?categoria=${encodeURIComponent(program.key)}`} style={{ textDecoration: "none", color: "inherit" }} aria-label={`Abrir ${program.key}`}><article><span>{program.icon}</span><h2>{program.key}</h2><p>{program.description}</p><small>Ver conteúdos →</small></article></Link>)}</section>
-    <section className="enat-tv-editorial" aria-labelledby="tv-editorial-title"><div className="enat-tv-editorial-heading"><span className="enat-tv-eyebrow">PUBLICAÇÕES</span><h2 id="tv-editorial-title">{selectedCategory ? `Conteúdos: ${selectedCategory}` : "Conteúdos publicados pela redação"}</h2><p>Materiais aprovados e publicados pela Central Editorial da ENAT TV.</p>{selectedCategory && <Link to="/tv">← Ver todas as publicações</Link>}</div>
+
+    <section className="enat-tv-hero">
+      <div className="enat-tv-brand"><BrandingENAT variant="header" /></div>
+      <span className="enat-tv-eyebrow">ENAT TV</span>
+      <h1>Neurociência, educação e segurança no trânsito.</h1>
+      <p>O espaço audiovisual do ENAT para entrevistas, aulas, ciência, eventos, notícias e conteúdos sobre comportamento humano no trânsito.</p>
+      <div className="enat-tv-actions"><button className="enat-tv-primary" onClick={() => navigate("/portal")}>Voltar ao Portal ENAT</button><span className="enat-tv-status">● Em implantação</span></div>
+    </section>
+
+    <section id="ao-vivo" className="enat-tv-live" aria-labelledby="live-title">
+      <div className="enat-tv-section-heading"><span className="enat-tv-eyebrow">🔴 AO VIVO</span><h2 id="live-title">ENAT TV Ao Vivo</h2><p>Transmissões, entrevistas e eventos especiais do ENAT.</p></div>
+      <div className="enat-tv-live-player">
+        {LIVE_EMBED_URL ? <iframe src={LIVE_EMBED_URL} title="ENAT TV Ao Vivo" allow="autoplay; encrypted-media; picture-in-picture; fullscreen" allowFullScreen /> : <div className="enat-tv-live-placeholder"><span>🔴</span><h3>Próxima transmissão</h3><p>A transmissão ao vivo será disponibilizada aqui quando o canal estiver no ar.</p><small>Estrutura preparada para incorporar o player oficial da ENAT TV.</small></div>}
+      </div>
+    </section>
+
+    <section className="enat-tv-editorial" aria-labelledby="tv-editorial-title">
+      <div className="enat-tv-editorial-heading"><span className="enat-tv-eyebrow">PUBLICAÇÕES</span><h2 id="tv-editorial-title">{selectedCategory ? `Conteúdos: ${selectedCategory}` : "Conteúdos publicados"}</h2><p>Materiais aprovados e publicados pela Central Editorial da ENAT TV.</p>{selectedCategory && <Link to="/tv">← Ver todas as publicações</Link>}</div>
       <div className="enat-tv-editorial-layout">
-        <aside className="enat-tv-sidebar" aria-label="Menu de publicações"> <div className="enat-tv-sidebar-title">📚 Publicações</div>{sidebarArticles.length ? sidebarArticles.map((item) => <Link key={item.id} className={`enat-tv-sidebar-link ${selectedContentId === item.id ? "active" : ""}`} to={`/tv?${selectedCategory ? `categoria=${encodeURIComponent(selectedCategory)}&` : ""}conteudo=${encodeURIComponent(item.id)}`}>{item.title}</Link>) : <span className="enat-tv-sidebar-empty">Nenhum artigo publicado nesta categoria.</span>}</aside>
+        <aside className="enat-tv-sidebar" aria-label="Menu de publicações"><div className="enat-tv-sidebar-title">📚 Publicações</div>{sidebarArticles.length ? sidebarArticles.map((item) => <Link key={item.id} className={`enat-tv-sidebar-link ${selectedContentId === item.id ? "active" : ""}`} to={`/tv?${selectedCategory ? `categoria=${encodeURIComponent(selectedCategory)}&` : ""}conteudo=${encodeURIComponent(item.id)}`}>{item.title}</Link>) : <span className="enat-tv-sidebar-empty">Nenhum artigo publicado nesta categoria.</span>}</aside>
         <div className="enat-tv-editorial-main">
           {selectedContent ? <article className="enat-tv-article-view">{selectedContent.image_url && <img src={selectedContent.image_url} alt="" loading="lazy" />}{selectedContent.category && <span className="enat-tv-eyebrow">{selectedContent.category}</span>}<h3>{selectedContent.title}</h3>{selectedContent.summary && <p className="enat-tv-article-summary">{selectedContent.summary}</p>}<div className="enat-tv-article-content">{selectedContent.content}</div><small>{selectedContent.published_at ? new Date(selectedContent.published_at).toLocaleDateString("pt-BR") : "Publicado pela ENAT TV"}</small></article> : mainMedia.map((item) => { const media = mediaUrls[item.id]; return <article key={item.id} className="enat-tv-editorial-card">{item.image_url && <img src={item.image_url} alt="" loading="lazy" />}<video controls playsInline preload="metadata" src={media.url} style={{ width: "100%", maxHeight: "420px", borderRadius: "12px", background: "#000" }}>Seu navegador não conseguiu reproduzir este vídeo.</video><div>{item.category && <span className="enat-tv-eyebrow">{item.category}</span>}<h3>{item.title}</h3>{item.summary && <p>{item.summary}</p>}<small>{item.published_at ? new Date(item.published_at).toLocaleDateString("pt-BR") : "Publicado pela ENAT TV"}</small></div></article>; })}
-          {!selectedContent && !mainMedia.length && <div className="enat-tv-empty">{selectedCategory ? "Ainda não há vídeos nesta categoria." : "As primeiras publicações audiovisuais da ENAT TV aparecerão aqui após a aprovação editorial."}</div>}
-          {selectedContent && <Link className="enat-tv-back-link" to={`/tv${selectedCategory ? `?categoria=${encodeURIComponent(selectedCategory)}` : ""}`}>← Voltar aos vídeos</Link>}
+          {!selectedContent && !mainMedia.length && <div className="enat-tv-empty">{selectedCategory ? "Ainda não há conteúdos nesta categoria." : "As publicações audiovisuais da ENAT TV aparecerão aqui após a aprovação editorial."}</div>}
+          {selectedContent && <Link className="enat-tv-back-link" to={`/tv${selectedCategory ? `?categoria=${encodeURIComponent(selectedCategory)}` : ""}`}>← Voltar aos conteúdos</Link>}
         </div>
       </div>
     </section>
+
     {showSubmission && <div className="enat-tv-modal-backdrop" role="presentation" onMouseDown={(event) => { if (event.target === event.currentTarget) setShowSubmission(false); }}>
       <section className="enat-tv-submit-modal" role="dialog" aria-modal="true" aria-labelledby="tv-submission-title">
         <div className="enat-tv-modal-header"><div><span className="enat-tv-eyebrow">PARTICIPE</span><h2 id="tv-submission-title">Envie uma pauta ou material</h2></div><button type="button" className="enat-tv-modal-close" onClick={() => setShowSubmission(false)} aria-label="Fechar">×</button></div>
