@@ -152,9 +152,9 @@ export function ENATTVAdmin() {
       setRows((old) => old.filter((row) => row.id !== selected.id));
       setSelected(null);
       setEditor(null);
-      setMessage("Teste excluído: pauta, publicação editorial e anexos foram removidos.");
+      setMessage("Pauta excluída: publicação editorial e anexos foram removidos.");
     } catch (error) {
-      setMessage(error.message || "Não foi possível excluir o teste.");
+      setMessage(error.message || "Não foi possível excluir a pauta.");
     } finally {
       setBusy(false);
     }
@@ -260,9 +260,9 @@ export function ENATTVAdmin() {
               <div className="tv-admin-publish-actions"><button type="button" onClick={() => setEditor(null)} disabled={busy}>Cancelar</button><button type="button" className="tv-admin-publish" onClick={publishSelected} disabled={busy || !editor.title.trim() || !editor.content.trim()}>{busy ? "Publicando…" : "📺 Publicar na ENAT TV"}</button></div>
             </div>}
 
-            {selected.status === "published" && <div style={{ marginTop: 18, display: "flex", justifyContent: "flex-end" }}><button type="button" onClick={deleteSelected} disabled={busy} style={{ background: "#8f2d2d", color: "#fff", border: "1px solid #c45a5a", borderRadius: 8, padding: "10px 16px", fontWeight: 700, cursor: busy ? "not-allowed" : "pointer" }}>🗑️ Excluir publicação de teste</button></div>}
+            {(selected.status === "published" || selected.status === "archived") && <div style={{ marginTop: 18, display: "flex", justifyContent: "flex-end" }}><button type="button" onClick={deleteSelected} disabled={busy} style={{ background: "#8f2d2d", color: "#fff", border: "1px solid #c45a5a", borderRadius: 8, padding: "10px 16px", fontWeight: 700, cursor: busy ? "not-allowed" : "pointer" }}>🗑️ Excluir definitivamente</button></div>}
 
-            <p className="tv-note">A publicação editorial é registrada no banco público da ENAT e a pauta passa para “Publicado”. Vídeos, transmissões ao vivo e arquivos de mídia pesada continuam dependendo do canal audiovisual escolhido pela ENAT.</p>
+            <p className="tv-note">A publicação editorial é registrada no banco público da ENAT. Ao arquivar, o conteúdo deixa de seguir o fluxo público; a exclusão definitiva remove a pauta, a publicação editorial e os anexos associados.</p>
           </section>
         </div>
       )}
