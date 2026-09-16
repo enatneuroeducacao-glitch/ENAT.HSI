@@ -4,6 +4,9 @@ import { BrandingENAT } from "../components/BrandingENAT";
 import { supabase } from "../lib/supabaseClient";
 import "./ENATTV.css";
 
+const MAX_FILE_SIZE = 15 * 1024 * 1024;
+const ALLOWED_EXTENSIONS = new Set(["pdf", "doc", "docx", "odt", "txt", "rtf", "md", "jpg", "jpeg", "png", "mp4", "webm", "mov"]);
+
 export function ENATTV() {
   const navigate = useNavigate();
   const [form, setForm] = useState({ name: "", email: "", subject: "", message: "" });
@@ -27,6 +30,35 @@ export function ENATTV() {
     loadEditorial();
   }, []);
 
+  const handleFiles = (event) => {
+    const selected = Array.from(event.target.files || []);
+    const invalidType = selected.find((file) => {
+      const ext = file.name.split(".").pop()?.toLowerCase() || "";
+      return !ALLOWED_EXTENSIONS.has(ext);
+    });
+    if (invalidType) {
+      setFiles([]);
+      setStatus(`Formato não permitido: ${invalidType.name}.`);
+      event.target.value = "";
+      return;
+    }
+    const oversized = selected.find((file) => file.size > MAX_FILE_SIZE);
+    if (oversized) {
+      setFiles([]);
+      setStatus(`O arquivo ${oversized.name} excede o limite de 15 MB.`);
+      event.target.value = "";
+      return;
+    }
+    if (selected.length > 5) {
+      setFiles([]);
+      setStatus("É permitido anexar no máximo 5 arquivos.");
+      event.target.value = "";
+      return;
+    }
+    setFiles(selected);
+    setStatus("");
+  };
+
   const submit = async (event) => {
     event.preventDefault();
     if (!consent) {
@@ -44,25 +76,18 @@ export function ENATTV() {
       Object.entries({ ...form, kind: "tv_submission", consent: "true" }).forEach(([key, value]) => data.append(key, value));
       files.forEach((file) => data.append("files", file, file.name));
 
-      const { data: result, error } = await supabase.functions.invoke("enat-public-inbox", {
+      const endpoint = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/enat-public-inbox`;
+      const response = await fetch(endpoint, {
+        method: "POST",
+        headers: {
+          apikey: import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
+        },
         body: data,
       });
-
-      if (error) {
-        let detail = error.message || "Falha na comunicação com a central editorial.";
-        try {
-          const response = error.context;
-          if (response && typeof response.json === "function") {
-            const body = await response.json();
-            if (body?.error) detail = body.error;
-          }
-        } catch {
-          // Mantém a mensagem principal quando a resposta não puder ser lida.
-        }
-        throw new Error(detail);
+      const result = await response.json().catch(() => ({}));
+      if (!response.ok || !result?.ok) {
+        throw new Error(result?.error || `Falha no recebimento (HTTP ${response.status}).`);
       }
-
-      if (!result?.ok) throw new Error(result?.error || "Não foi possível enviar o material.");
 
       setForm({ name: "", email: "", subject: "", message: "" });
       setFiles([]);
@@ -130,7 +155,7 @@ export function ENATTV() {
           <input required type="email" placeholder="E-mail" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} />
           <input required placeholder="Assunto / pauta" value={form.subject} onChange={(e) => setForm({ ...form, subject: e.target.value })} />
           <textarea required rows="7" placeholder="Descreva a pauta ou material" value={form.message} onChange={(e) => setForm({ ...form, message: e.target.value })} />
-          <label className="enat-tv-file">📎 Anexar arquivos <input type="file" multiple onChange={(e) => setFiles(Array.from(e.target.files || []))} /></label>
+          <label className="enat-tv-file">📎 Anexar arquivos <input type="file" multiple onChange={handleFiles} /></label>
           {files.length > 0 && <small>{files.length} arquivo(s) selecionado(s)</small>}
           <label className="enat-tv-consent"><input type="checkbox" checked={consent} onChange={(e) => setConsent(e.target.checked)} required /> Concordo com o uso dos dados informados para análise e contato sobre esta submissão.</label>
           <button className="enat-tv-primary" disabled={sending} type="submit">{sending ? "Enviando…" : "Enviar para a redação"}</button>
