@@ -12,6 +12,7 @@ const STATUS = {
 };
 
 const STATUS_ORDER = ["new", "review", "approved", "published", "archived"];
+const VIDEO_EXTENSIONS = new Set(["mp4", "webm", "mov"]);
 
 function messageText(row) {
   return row?.content || row?.message || row?.summary || "";
@@ -19,6 +20,13 @@ function messageText(row) {
 
 function subject(row) {
   return row?.subject || row?.title || "Pauta ENAT TV";
+}
+
+function isVideo(file) {
+  const type = String(file?.type || "").toLowerCase();
+  const name = String(file?.name || "").toLowerCase();
+  const ext = name.includes(".") ? name.split(".").pop() : "";
+  return type.startsWith("video/") || VIDEO_EXTENSIONS.has(ext);
 }
 
 export function ENATTVAdmin() {
@@ -31,6 +39,7 @@ export function ENATTVAdmin() {
   const [query, setQuery] = useState("");
   const [editor, setEditor] = useState(null);
   const [attachmentBusy, setAttachmentBusy] = useState(null);
+  const [videoPreview, setVideoPreview] = useState(null);
 
   const load = async () => {
     setMessage("");
@@ -147,7 +156,12 @@ export function ENATTVAdmin() {
       });
       const result = await response.json().catch(() => ({}));
       if (!response.ok || result.error || !result.url) throw new Error(result.error || "Não foi possível abrir o anexo.");
-      window.open(result.url, "_blank", "noopener,noreferrer");
+
+      if (isVideo(file)) {
+        setVideoPreview({ name: file.name || "Vídeo ENAT TV", url: result.url });
+      } else {
+        window.open(result.url, "_blank", "noopener,noreferrer");
+      }
     } catch (error) {
       setMessage(error.message || "Falha ao abrir o anexo.");
     } finally {
@@ -190,7 +204,7 @@ export function ENATTVAdmin() {
 
         <div className="tv-admin-list">
           {visibleRows.map((row) => (
-            <button key={row.id} className="tv-admin-row" onClick={() => { setSelected(row); setEditor(null); }}>
+            <button key={row.id} className="tv-admin-row" onClick={() => { setSelected(row); setEditor(null); setVideoPreview(null); }}>
               <div>
                 <b>{subject(row)}</b>
                 <p>{row.name || "Sem nome"} · {row.email || "sem e-mail"}</p>
@@ -208,13 +222,32 @@ export function ENATTVAdmin() {
           <section className="tv-modal-card" onClick={(e) => e.stopPropagation()}>
             <div className="tv-modal-head">
               <div><span>PAUTA RECEBIDA</span><h2>{subject(selected)}</h2></div>
-              <button onClick={() => setSelected(null)}>Fechar</button>
+              <button onClick={() => { setSelected(null); setVideoPreview(null); }}>Fechar</button>
             </div>
             <div className="tv-meta"><b>Remetente</b><span>{selected.name || "—"}</span><b>E-mail</b><span>{selected.email || "—"}</span><b>Recebido</b><span>{selected.created_at ? new Date(selected.created_at).toLocaleString("pt-BR") : "—"}</span></div>
             <h3>Conteúdo recebido</h3>
             <p className="tv-content">{messageText(selected) || "Sem conteúdo informado."}</p>
 
-            {Array.isArray(selected.attachments) && selected.attachments.length > 0 && <div><h3>📎 Anexos</h3><div className="tv-attachments">{selected.attachments.map((file, index) => <div key={file.path || index}>📄 {file.name || `Arquivo ${index + 1}`} <button type="button" onClick={() => openAttachment(file)} disabled={attachmentBusy === file.path}>{attachmentBusy === file.path ? "Abrindo…" : "Abrir"}</button></div>)}</div></div>}
+            {videoPreview && (
+              <div className="tv-video-preview">
+                <div className="tv-video-preview-head">
+                  <h3>🎬 Pré-visualização</h3>
+                  <button type="button" onClick={() => setVideoPreview(null)}>Fechar vídeo</button>
+                </div>
+                <p>{videoPreview.name}</p>
+                <video
+                  controls
+                  playsInline
+                  preload="metadata"
+                  src={videoPreview.url}
+                  style={{ width: "100%", maxHeight: "520px", borderRadius: "12px", background: "#000" }}
+                >
+                  Seu navegador não conseguiu reproduzir este vídeo.
+                </video>
+              </div>
+            )}
+
+            {Array.isArray(selected.attachments) && selected.attachments.length > 0 && <div><h3>📎 Anexos</h3><div className="tv-attachments">{selected.attachments.map((file, index) => <div key={file.path || index}> {isVideo(file) ? "🎬" : "📄"} {file.name || `Arquivo ${index + 1}`} <button type="button" onClick={() => openAttachment(file)} disabled={attachmentBusy === file.path}>{attachmentBusy === file.path ? "Abrindo…" : isVideo(file) ? "Pré-visualizar" : "Abrir"}</button></div>)}</div></div>}
 
             <div className="tv-workflow">
               <b>Fluxo editorial</b>
