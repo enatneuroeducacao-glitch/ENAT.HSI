@@ -75,6 +75,22 @@ export function ENATTVAdmin() {
     setBusy(false);
   };
 
+  const callAdmin = async (body) => {
+    if (!session?.access_token) throw new Error("Sessão administrativa não encontrada.");
+    const baseUrl = import.meta.env.VITE_SUPABASE_URL;
+    const response = await fetch(`${baseUrl}/functions/v1/manage-public-content`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${session.access_token}`,
+      },
+      body: JSON.stringify(body),
+    });
+    const result = await response.json().catch(() => ({}));
+    if (!response.ok || result.error) throw new Error(result.error || "Não foi possível concluir a operação administrativa.");
+    return result;
+  };
+
   const openEditor = (row) => {
     setEditor({
       title: subject(row),
@@ -92,43 +108,53 @@ export function ENATTVAdmin() {
       setMessage("A pauta precisa estar aprovada antes da publicação.");
       return;
     }
-    if (!session?.access_token) {
-      setMessage("Sessão administrativa não encontrada.");
-      return;
-    }
     setBusy(true);
     setMessage("Publicando na ENAT TV…");
     try {
-      const baseUrl = import.meta.env.VITE_SUPABASE_URL;
-      const response = await fetch(`${baseUrl}/functions/v1/manage-public-content`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${session.access_token}`,
+      await callAdmin({
+        action: "create_editorial",
+        editorial: {
+          kind: "article",
+          title: editor.title,
+          summary: editor.summary,
+          content: editor.content,
+          category: editor.category,
+          image_url: editor.image_url || null,
+          featured: Boolean(editor.featured),
+          published: true,
+          author_name: selected.name || "ENAT TV",
+          tags: ["ENAT TV"],
+          source_submission_id: selected.id,
         },
-        body: JSON.stringify({
-          action: "create_editorial",
-          editorial: {
-            kind: "article",
-            title: editor.title,
-            summary: editor.summary,
-            content: editor.content,
-            category: editor.category,
-            image_url: editor.image_url || null,
-            featured: Boolean(editor.featured),
-            published: true,
-            author_name: selected.name || "ENAT TV",
-            tags: ["ENAT TV"],
-          },
-        }),
       });
-      const result = await response.json().catch(() => ({}));
-      if (!response.ok || result.error) throw new Error(result.error || "Não foi possível publicar o conteúdo.");
       await updateStatus(selected.id, "published");
       setMessage("Conteúdo publicado na ENAT TV e pauta marcada como publicada.");
       setEditor(null);
     } catch (error) {
       setMessage(error.message || "Falha na publicação.");
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const deleteSelected = async () => {
+    if (!selected) return;
+    const confirmed = window.confirm(`Excluir definitivamente a pauta “${subject(selected)}” e sua publicação na ENAT TV?\n\nEsta ação remove também os anexos enviados. Não poderá ser desfeita.`);
+    if (!confirmed) return;
+    setBusy(true);
+    setMessage("Excluindo pauta, publicação e anexos…");
+    try {
+      const editorialList = await callAdmin({ action: "list_editorial" });
+      const editorial = (editorialList.editorial || [])
+        .filter((item) => item.title === subject(selected) && (!selected.name || item.author_name === selected.name))
+        .sort((a, b) => new Date(b.published_at || b.created_at || 0) - new Date(a.published_at || a.created_at || 0))[0];
+      await callAdmin({ action: "delete_tv_submission", id: selected.id, editorial_id: editorial?.id || null });
+      setRows((old) => old.filter((row) => row.id !== selected.id));
+      setSelected(null);
+      setEditor(null);
+      setMessage("Teste excluído: pauta, publicação editorial e anexos foram removidos.");
+    } catch (error) {
+      setMessage(error.message || "Não foi possível excluir o teste.");
     } finally {
       setBusy(false);
     }
@@ -233,6 +259,8 @@ export function ENATTVAdmin() {
               <label><input type="checkbox" checked={editor.featured} onChange={(e) => setEditor({ ...editor, featured: e.target.checked })} /> Destacar publicação</label>
               <div className="tv-admin-publish-actions"><button type="button" onClick={() => setEditor(null)} disabled={busy}>Cancelar</button><button type="button" className="tv-admin-publish" onClick={publishSelected} disabled={busy || !editor.title.trim() || !editor.content.trim()}>{busy ? "Publicando…" : "📺 Publicar na ENAT TV"}</button></div>
             </div>}
+
+            {selected.status === "published" && <div style={{ marginTop: 18, display: "flex", justifyContent: "flex-end" }}><button type="button" onClick={deleteSelected} disabled={busy} style={{ background: "#8f2d2d", color: "#fff", border: "1px solid #c45a5a", borderRadius: 8, padding: "10px 16px", fontWeight: 700, cursor: busy ? "not-allowed" : "pointer" }}>🗑️ Excluir publicação de teste</button></div>}
 
             <p className="tv-note">A publicação editorial é registrada no banco público da ENAT e a pauta passa para “Publicado”. Vídeos, transmissões ao vivo e arquivos de mídia pesada continuam dependendo do canal audiovisual escolhido pela ENAT.</p>
           </section>
