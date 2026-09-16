@@ -1,0 +1,11 @@
+import { useState } from "react";
+import { supabase } from "../lib/supabaseClient";
+import "./ENATTVAdmin.css";
+
+export function ENATTVAdmin(){
+ const [status,setStatus]=useState("");
+ const [form,setForm]=useState({name:"",email:"",subject:"",message:""});
+ const [files,setFiles]=useState([]);
+ const submit=async e=>{e.preventDefault();setStatus("Enviando…");try{const url=import.meta.env.VITE_SUPABASE_URL;const endpoint=url?`${url}/functions/v1/enat-public-inbox`:"";if(!endpoint)throw Error("Endpoint do portal não configurado.");const fd=new FormData();Object.entries({...form,kind:"tv_submission"}).forEach(([k,v])=>fd.append(k,v));files.forEach(f=>fd.append("files",f,f.name));const r=await fetch(endpoint,{method:"POST",body:fd});const d=await r.json();if(!r.ok||d.error)throw Error(d.error||"Falha no envio");setStatus("Contato recebido. A equipe ENAT TV poderá analisar e publicar o material.");setForm({name:"",email:"",subject:"",message:""});setFiles([])}catch(err){setStatus(err.message)} };
+ return <main className="tv-admin"><section><span>ADMINISTRAÇÃO</span><h1>ENAT TV</h1><p>Central editorial para receber contatos, pautas, artigos, vídeos e anexos destinados à ENAT TV.</p><div className="tv-admin-grid"><article><b>📥 Caixa de entrada</b><p>Receba solicitações, entrevistas, sugestões de pauta e materiais.</p></article><article><b>📎 Anexos</b><p>Organize materiais enviados para análise editorial.</p></article><article><b>📰 Publicação</b><p>Após análise, encaminhe conteúdos para publicação na ENAT TV.</p></article></div><form onSubmit={submit}><h2>Receber material da ENAT TV</h2><input placeholder="Nome" required value={form.name} onChange={e=>setForm({...form,name:e.target.value})}/><input type="email" placeholder="E-mail" required value={form.email} onChange={e=>setForm({...form,email:e.target.value})}/><input placeholder="Assunto / pauta" required value={form.subject} onChange={e=>setForm({...form,subject:e.target.value})}/><textarea rows="7" placeholder="Mensagem / descrição do material" required value={form.message} onChange={e=>setForm({...form,message:e.target.value})}/><input type="file" multiple onChange={e=>setFiles(Array.from(e.target.files||[]))}/><button type="submit">Receber material</button>{status&&<p className="tv-status">{status}</p>}</form></section></main>
+}
