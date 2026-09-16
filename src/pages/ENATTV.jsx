@@ -33,17 +33,37 @@ export function ENATTV() {
       setStatus("É necessário concordar com o uso dos dados para análise e contato sobre esta submissão.");
       return;
     }
+    if (!supabase) {
+      setStatus("Canal de recebimento não configurado.");
+      return;
+    }
     setSending(true);
     setStatus("Enviando material…");
     try {
-      const baseUrl = import.meta.env.VITE_SUPABASE_URL;
-      if (!baseUrl) throw new Error("Canal de recebimento não configurado.");
       const data = new FormData();
       Object.entries({ ...form, kind: "tv_submission", consent: "true" }).forEach(([key, value]) => data.append(key, value));
       files.forEach((file) => data.append("files", file, file.name));
-      const response = await fetch(`${baseUrl}/functions/v1/enat-public-inbox`, { method: "POST", body: data });
-      const result = await response.json().catch(() => ({}));
-      if (!response.ok || result.error) throw new Error(result.error || "Não foi possível enviar o material.");
+
+      const { data: result, error } = await supabase.functions.invoke("enat-public-inbox", {
+        body: data,
+      });
+
+      if (error) {
+        let detail = error.message || "Falha na comunicação com a central editorial.";
+        try {
+          const response = error.context;
+          if (response && typeof response.json === "function") {
+            const body = await response.json();
+            if (body?.error) detail = body.error;
+          }
+        } catch {
+          // Mantém a mensagem principal quando a resposta não puder ser lida.
+        }
+        throw new Error(detail);
+      }
+
+      if (!result?.ok) throw new Error(result?.error || "Não foi possível enviar o material.");
+
       setForm({ name: "", email: "", subject: "", message: "" });
       setFiles([]);
       setConsent(false);
