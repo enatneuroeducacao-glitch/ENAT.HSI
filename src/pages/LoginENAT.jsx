@@ -16,7 +16,7 @@ export function LoginENAT(){
    await signInUsername(username,password);
    const me=await getAdminProfile();
    if(!me?.profile?.active) throw new Error("Usuário autenticado, mas sem autorização ativa para a Central ENAT HSI.");
-   navigate("/emissor",{replace:true});
+   navigate("/dashboard-enat",{replace:true});
   }catch(err){
    setError(err?.message||"Usuário ou senha inválidos.");
   }finally{setBusy(false)}
