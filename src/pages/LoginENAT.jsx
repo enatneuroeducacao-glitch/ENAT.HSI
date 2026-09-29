@@ -8,7 +8,7 @@ import "./LoginENAT.css";
 export function LoginENAT(){
  const navigate=useNavigate(); const {session,profile,loading}=useAuth(); const {enatLogo,neuroLogo}=useENATBranding();
  const [username,setUsername]=useState(""); const [password,setPassword]=useState(""); const [busy,setBusy]=useState(false); const [error,setError]=useState("");
- useEffect(()=>{ if(!loading&&session&&profile) navigate("/emissor",{replace:true}); },[loading,session,profile,navigate]);
+ useEffect(()=>{ if(!loading&&session&&profile) navigate("/dashboard-enat",{replace:true}); },[loading,session,profile,navigate]);
  const submit=async(e)=>{
   e.preventDefault();
   setBusy(true);setError("");
