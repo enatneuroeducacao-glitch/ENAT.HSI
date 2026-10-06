@@ -9,25 +9,29 @@ const fmt=v=>Number(v||0).toLocaleString("pt-BR");
 const date=v=>v?new Date(v).toLocaleString("pt-BR"):"—";
 
 export function RedeSocialAdmin(){
- const[data,setData]=useState({profiles:[],posts:[],reports:[],communities:[],counts:{profiles:0,posts:0,reports:0,communities:0}});
+ const[data,setData]=useState({profiles:[],posts:[],reports:[],communities:[],activity:[],assessments:[],counts:{profiles:0,posts:0,reports:0,communities:0,activity:0,assessments:0}});
  const[loading,setLoading]=useState(true),[error,setError]=useState(""),[tab,setTab]=useState("overview"),[busy,setBusy]=useState("");
  const load=useCallback(async()=>{
   if(!supabase){setError("Supabase da Central ENAT HSI não está configurado.");setLoading(false);return}
   setLoading(true);setError("");
   try{
-   const[cP,cPo,cR,cC,pP,pPo,pR,pC]=await Promise.all([
+   const[cP,cPo,cR,cC,cA,cH,pP,pPo,pR,pC,pA,pH]=await Promise.all([
     supabase.from("social_profiles").select("*",{count:"exact",head:true}),
     supabase.from("social_posts").select("*",{count:"exact",head:true}),
     supabase.from("social_reports").select("*",{count:"exact",head:true}),
     supabase.from("social_communities").select("*",{count:"exact",head:true}),
+    supabase.from("cmnt_scientific_activity").select("*",{count:"exact",head:true}),
+    supabase.from("hsi_doth_p_assessments").select("*",{count:"exact",head:true}),
     supabase.from("social_profiles").select("id,display_name,username,city,state,verified,created_at").order("created_at",{ascending:false}).limit(30),
     supabase.from("social_posts").select("id,author_id,content,media_type,location,visibility,created_at").order("created_at",{ascending:false}).limit(30),
     supabase.from("social_reports").select("id,reporter_id,post_id,reason,status,created_at").order("created_at",{ascending:false}).limit(30),
-    supabase.from("social_communities").select("id,name,category,description,created_at").order("name").limit(50)
+    supabase.from("social_communities").select("id,name,category,description,created_at").order("name").limit(50),
+    supabase.from("cmnt_scientific_activity").select("id,user_id,session_id,section_key,action,metadata,created_at").order("created_at",{ascending:false}).limit(200),
+    supabase.from("hsi_doth_p_assessments").select("id,user_id,decision_score,organization_score,time_score,humanization_score,psychocomportamental_score,total_score,interpretation,completed_at").order("completed_at",{ascending:false}).limit(100)
    ]);
-   const errs=[cP,cPo,cR,cC,pP,pPo,pR,pC].filter(x=>x.error).map(x=>x.error.message);
+   const errs=[cP,cPo,cR,cC,cA,cH,pP,pPo,pR,pC,pA,pH].filter(x=>x.error).map(x=>x.error.message);
    if(errs.length)throw new Error([...new Set(errs)].join(" • "));
-   setData({profiles:pP.data||[],posts:pPo.data||[],reports:pR.data||[],communities:pC.data||[],counts:{profiles:cP.count||0,posts:cPo.count||0,reports:cR.count||0,communities:cC.count||0}});
+   setData({profiles:pP.data||[],posts:pPo.data||[],reports:pR.data||[],communities:pC.data||[],activity:pA.data||[],assessments:pH.data||[],counts:{profiles:cP.count||0,posts:cPo.count||0,reports:cR.count||0,communities:cC.count||0,activity:cA.count||0,assessments:cH.count||0}});
   }catch(e){setError(e?.message||"Não foi possível carregar a administração da rede social.")}finally{setLoading(false)}
  },[]);
  useEffect(()=>{load();const t=window.setInterval(load,30000);return()=>window.clearInterval(t)},[load]);
@@ -56,12 +60,18 @@ export function RedeSocialAdmin(){
     {metric("USUÁRIOS",data.counts.profiles,"Perfis da rede")}
     {metric("PUBLICAÇÕES",data.counts.posts,"Conteúdos publicados")}
     {metric("DENÚNCIAS",data.counts.reports,"Registros de moderação")}
-    {metric("COMUNIDADES",data.counts.communities,"Comunidades cadastradas")}
+    {metric("COMUNIDADES",data.counts.communities,"Comunidades cadastradas")}{metric("MOVIMENTAÇÕES CIENTÍFICAS",data.counts.activity,"Navegações e ações registradas")}{metric("AVALIAÇÕES HSI-DOTH-P",data.counts.assessments,"Questionários concluídos")}
    </section>
    <nav style={{...card,padding:10,display:"flex",gap:8,flexWrap:"wrap",marginBottom:18}}>
-    {[["overview","Visão geral"],["users","Usuários"],["posts","Publicações"],["reports","Denúncias"],["communities","Comunidades"]].map(([k,l])=><button key={k} onClick={()=>setTab(k)} style={{...btn,background:tab===k?"#12344a":"#0e1d2a",color:tab===k?"#63caff":"#dff5ff"}}>{l}</button>)}
+    {[["overview","Visão geral"],["scientific","Ecossistema científico"],["activity","Atividade científica"],["hsi","HSI-DOTH-P"],["users","Usuários"],["posts","Publicações"],["reports","Denúncias"],["communities","Comunidades"]].map(([k,l])=><button key={k} onClick={()=>setTab(k)} style={{...btn,background:tab===k?"#12344a":"#0e1d2a",color:tab===k?"#63caff":"#dff5ff"}}>{l}</button>)}
    </nav>
    {loading&&!data.profiles.length?<section style={card}>Carregando dados da rede social…</section>:<>
+    {tab==="scientific"&&<section style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(280px,1fr))",gap:18}}>
+     <article style={card}><div style={muted}>ECOSSISTEMA</div><h2 style={{margin:"6px 0 14px"}}>Núcleos científicos</h2><p style={{...muted,lineHeight:1.7}}>Acompanhe a utilização das áreas de pesquisa, NEXUS 12, HSI-DOTH-P, observatório, evidências, governança e conhecimento.</p><div style={{display:"grid",gap:8,marginTop:12}}>{["Visão geral","Laboratório de pesquisa","Pesquisador","Evidências","NEXUS 12","HSI","Academia ENAT","Observatório","Eventos","Editorial","Comunidades científicas","Instituições","Governança","Base de conhecimento","Integrações","IA científica"].map(x=><div key={x} style={{...card,background:"#091824",padding:12}}><b>{x}</b></div>)}</div></article>
+     <article style={card}><div style={muted}>ÚLTIMA ATIVIDADE</div><h2 style={{margin:"6px 0 14px"}}>Movimentações recentes</h2>{data.activity.slice(0,15).map(a=><div key={a.id} style={{padding:"10px 0",borderBottom:"1px solid rgba(255,255,255,.07)"}}><b>{a.section_key}</b><div style={muted}>{a.action} · {date(a.created_at)}</div></div>)}{!data.activity.length&&<p style={muted}>Nenhuma movimentação registrada ainda.</p>}</article>
+    </section>}
+    {tab==="activity"&&<section style={card}><div style={muted}>RASTREABILIDADE</div><h2 style={{margin:"6px 0 16px"}}>Atividade do ecossistema científico</h2><p style={{...muted,lineHeight:1.6}}>Cada entrada registra a área acessada, a ação realizada, data/hora e metadados técnicos necessários para auditoria da plataforma.</p><div style={{overflowX:"auto",marginTop:14}}><table style={{width:"100%",borderCollapse:"collapse",fontSize:13}}><thead><tr>{["Data/hora","Usuário","Área","Ação","Metadados"].map(h=><th key={h} style={{textAlign:"left",padding:"10px 8px",borderBottom:"1px solid rgba(255,255,255,.1)",color:"#8fa8ba"}}>{h}</th>)}</tr></thead><tbody>{data.activity.map(a=><tr key={a.id}><td style={{padding:"10px 8px",borderBottom:"1px solid rgba(255,255,255,.06)"}}>{date(a.created_at)}</td><td style={{padding:"10px 8px",borderBottom:"1px solid rgba(255,255,255,.06)"}}>{a.user_id||"Visitante"}</td><td style={{padding:"10px 8px",borderBottom:"1px solid rgba(255,255,255,.06)"}}>{a.section_key}</td><td style={{padding:"10px 8px",borderBottom:"1px solid rgba(255,255,255,.06)"}}>{a.action}</td><td style={{padding:"10px 8px",borderBottom:"1px solid rgba(255,255,255,.06)",maxWidth:360,whiteSpace:"pre-wrap"}}>{JSON.stringify(a.metadata||{})}</td></tr>)}</tbody></table></div></section>}
+    {tab==="hsi"&&<section style={card}><div style={muted}>HSI-DOTH-P</div><h2 style={{margin:"6px 0 16px"}}>Avaliações comportamentais registradas</h2><p style={{...muted,lineHeight:1.6}}>Resultados individuais do questionário HSI-DOTH-P, preservados para acompanhamento científico e administrativo. O instrumento não constitui diagnóstico clínico.</p>{data.assessments.map(a=><article key={a.id} style={{padding:"14px 0",borderBottom:"1px solid rgba(255,255,255,.08)"}}><div style={{display:"flex",justifyContent:"space-between",gap:14,flexWrap:"wrap"}}><div><b>Usuário: {a.user_id}</b><div style={muted}>{date(a.completed_at)} · {a.interpretation}</div></div><strong style={{fontSize:24}}>{Number(a.total_score||0).toFixed(1)}/100</strong></div><div style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(150px,1fr))",gap:8,marginTop:10}}>{[["Decisão",a.decision_score],["Organização",a.organization_score],["Tempo",a.time_score],["Humanização",a.humanization_score],["Psicocomportamental",a.psychocomportamental_score]].map(([k,v])=><div key={k} style={{...card,background:"#091824",padding:12}}><div style={muted}>{k}</div><b>{Number(v||0).toFixed(1)}</b></div>)}</div></article>)}{!data.assessments.length&&<p style={muted}>Nenhum HSI-DOTH-P concluído.</p>}</section>}
     {tab==="overview"&&<section style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(300px,1fr))",gap:18}}>
      <article style={card}><div style={muted}>ÚLTIMOS USUÁRIOS</div><h2 style={{margin:"6px 0 14px"}}>Cadastros recentes</h2>{data.profiles.slice(0,8).map(p=><div key={p.id} style={{padding:"10px 0",borderBottom:"1px solid rgba(255,255,255,.07)"}}><b>{p.display_name||"Usuário"}</b><div style={muted}>@{p.username||"usuario"} · {p.city||"—"}/{p.state||"—"}</div></div>)}</article>
      <article style={card}><div style={muted}>MODERAÇÃO</div><h2 style={{margin:"6px 0 14px"}}>Denúncias recentes</h2>{data.reports.slice(0,8).map(r=><div key={r.id} style={{padding:"10px 0",borderBottom:"1px solid rgba(255,255,255,.07)"}}><b>{r.reason||"Sem motivo"}</b><div style={muted}>Status: {r.status||"—"} · {date(r.created_at)}</div></div>)}{!data.reports.length&&<p style={muted}>Nenhuma denúncia registrada.</p>}</article>
