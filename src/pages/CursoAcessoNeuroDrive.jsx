@@ -1,7 +1,7 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { supabase } from "../lib/supabaseClient";
 
-const SESSION_KEY = "neurodrive_course_access_session_v1";
+const ACCESS_KEY = "neurodrive_course_access_ticket_v1";
 
 function safeText(value) {
   return String(value ?? "");
@@ -9,11 +9,7 @@ function safeText(value) {
 
 export function CursoAcessoNeuroDrive() {
   const [state, setState] = useState({ loading: true, error: "", course: null, session: "" });
-  const ticket = useMemo(() => {
-    const hash = window.location.hash.replace(/^#/, "");
-    const params = new URLSearchParams(hash);
-    return params.get("access") || "";
-  }, []);
+  const ticket = useMemo(() => {\n    const hash = window.location.hash.replace(/^#/, "");\n    const params = new URLSearchParams(hash);\n    return params.get("access") || sessionStorage.getItem(ACCESS_KEY) || "";\n  }, []);
 
   useEffect(() => {
     let cancelled = false;
@@ -22,16 +18,7 @@ export function CursoAcessoNeuroDrive() {
       try {
         if (!supabase) throw new Error("Conexão com o NeuroDrive indisponível.");
 
-        const stored = sessionStorage.getItem(SESSION_KEY);
-        const body = stored
-          ? { action: "session", session: stored }
-          : ticket
-            ? { action: "redeem", ticket }
-            : null;
-
-        if (!body) throw new Error("Este acesso ao curso expirou. Volte à Rede Neurotrânsito e abra o curso novamente.");
-
-        const { data, error } = await supabase.functions.invoke("neurodrive-course-access", { body });
+        if (!ticket) throw new Error("Este acesso ao curso expirou. Volte à Rede Neurotrânsito e abra o curso novamente.");\n\n        const { data, error } = await supabase.rpc("neurodrive_redeem_course_access", { p_ticket: ticket });
         if (error) {
           let message = error.message || "Não foi possível validar o acesso ao curso.";
           try {
@@ -41,14 +28,10 @@ export function CursoAcessoNeuroDrive() {
           throw new Error(message);
         }
 
-        if (!data?.session || !data?.course) {
-          throw new Error("A autorização do curso não foi concluída.");
-        }
-
-        sessionStorage.setItem(SESSION_KEY, data.session);
+        if (!data?.course) {\n          throw new Error("A autorização do curso não foi concluída.");\n        }\n\n        sessionStorage.setItem(ACCESS_KEY, ticket);
         if (!cancelled) {
           window.history.replaceState(null, "", window.location.pathname);
-          setState({ loading: false, error: "", course: data.course, session: data.session });
+          setState({ loading: false, error: "", course: data.course, session: ticket });
         }
       } catch (err) {
         if (!cancelled) setState({ loading: false, error: err?.message || "Acesso não autorizado.", course: null, session: "" });
