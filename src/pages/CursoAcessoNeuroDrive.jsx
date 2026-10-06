@@ -24,13 +24,10 @@ export function CursoAcessoNeuroDrive() {
 
         if (!ticket) throw new Error("Este acesso ao curso expirou. Volte à Rede Neurotrânsito e abra o curso novamente.");
 
-        const { data, error } = await supabase.rpc("neurodrive_redeem_course_access", { p_ticket: ticket });
+        const { data, error } = await supabase.functions.invoke("neurodrive-course-access", { body: { action: "redeem", ticket } });
         if (error) {
           let message = error.message || "Não foi possível validar o acesso ao curso.";
-          try {
-            const detail = await error.context?.json?.();
-            if (detail?.error) message = detail.error;
-          } catch {}
+          if (data?.error) message = data.error;
           throw new Error(message);
         }
 
