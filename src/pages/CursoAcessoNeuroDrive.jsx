@@ -9,7 +9,11 @@ function safeText(value) {
 
 export function CursoAcessoNeuroDrive() {
   const [state, setState] = useState({ loading: true, error: "", course: null, session: "" });
-  const ticket = useMemo(() => {\n    const hash = window.location.hash.replace(/^#/, "");\n    const params = new URLSearchParams(hash);\n    return params.get("access") || sessionStorage.getItem(ACCESS_KEY) || "";\n  }, []);
+  const ticket = useMemo(() => {
+    const hash = window.location.hash.replace(/^#/, "");
+    const params = new URLSearchParams(hash);
+    return params.get("access") || sessionStorage.getItem(ACCESS_KEY) || "";
+  }, []);
 
   useEffect(() => {
     let cancelled = false;
@@ -18,7 +22,9 @@ export function CursoAcessoNeuroDrive() {
       try {
         if (!supabase) throw new Error("Conexão com o NeuroDrive indisponível.");
 
-        if (!ticket) throw new Error("Este acesso ao curso expirou. Volte à Rede Neurotrânsito e abra o curso novamente.");\n\n        const { data, error } = await supabase.rpc("neurodrive_redeem_course_access", { p_ticket: ticket });
+        if (!ticket) throw new Error("Este acesso ao curso expirou. Volte à Rede Neurotrânsito e abra o curso novamente.");
+
+        const { data, error } = await supabase.rpc("neurodrive_redeem_course_access", { p_ticket: ticket });
         if (error) {
           let message = error.message || "Não foi possível validar o acesso ao curso.";
           try {
@@ -28,7 +34,11 @@ export function CursoAcessoNeuroDrive() {
           throw new Error(message);
         }
 
-        if (!data?.course) {\n          throw new Error("A autorização do curso não foi concluída.");\n        }\n\n        sessionStorage.setItem(ACCESS_KEY, ticket);
+        if (!data?.course) {
+          throw new Error("A autorização do curso não foi concluída.");
+        }
+
+        sessionStorage.setItem(ACCESS_KEY, ticket);
         if (!cancelled) {
           window.history.replaceState(null, "", window.location.pathname);
           setState({ loading: false, error: "", course: data.course, session: ticket });
