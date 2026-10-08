@@ -297,3 +297,32 @@ body:has(.enat-admin-menu) .table-card {
   body:has(.enat-admin-menu) .section .portal-grid { grid-template-columns: 1fr; }
   body:has(.enat-admin-menu) .section .portal-grid .field[style*="grid-column"] { grid-column: auto !important; }
 }
+
+
+/* Layout administrativo lateral — ENAT HSI */
+body:has(.enat-admin-menu) main{
+  min-height:100vh !important;
+  margin-left:264px !important;
+  width:calc(100% - 264px) !important;
+  max-width:none !important;
+  padding:36px max(28px,calc((100vw - 264px - 1180px)/2)) 56px !important;
+}
+body:has(.enat-admin-menu) .section{
+  width:min(1180px,calc(100% - 0px)) !important;
+  min-height:100vh;
+  padding:36px 0 56px !important;
+}
+body:has(.enat-admin-menu) .section.narrow{width:min(980px,100%) !important}
+body:has(.enat-admin-menu) .dash-head{margin-top:0 !important}
+
+@media(max-width:900px){
+  body:has(.enat-admin-menu) main{
+    margin-left:0 !important;
+    width:100% !important;
+    padding:72px 18px 40px !important;
+  }
+  body:has(.enat-admin-menu) .section{
+    width:100% !important;
+    padding:72px 0 40px !important;
+  }
+}
