@@ -37,7 +37,6 @@ const groups = [
       ["/neurodrive", "🧠", "NeuroDrive"],
       ["/tv-admin", "📺", "ENAT TV — Administrativo"],
       ["/tv-rede", "🔴", "ENAT TV — Rede"],
-      ...(profile?.role === "admin" ? [["https://siges-escola-segura.vercel.app", "🛡️", "SIGES — Escola Segura"]] : []),
     ],
   },
   {
@@ -99,6 +98,19 @@ export function MenuENAT() {
                     <span>{label}</span>
                   </NavLink>
                 ))}
+                {group.title === "Plataformas ENAT" && profile?.role === "admin" && (
+                  <a
+                    href="https://siges-escola-segura.vercel.app"
+                    className="enat-admin-link"
+                    target="_blank"
+                    rel="noreferrer"
+                    onClick={closeMobile}
+                  >
+                    <span className="enat-admin-icon" aria-hidden="true">🛡️</span>
+                    <span>SIGES — Escola Segura</span>
+                    <span className="external-mark" aria-hidden="true">↗</span>
+                  </a>
+                )}
               </section>
             ))}
 
