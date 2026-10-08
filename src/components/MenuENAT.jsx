@@ -2,5 +2,143 @@ import { NavLink, useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import { signOut } from "../lib/authApi";
 import { BrandingENAT } from "./BrandingENAT";
+import { useState } from "react";
 import "./MenuENAT.css";
-export function MenuENAT(){const {profile}=useAuth();const navigate=useNavigate();const logout=async()=>{await signOut();navigate("/portal",{replace:true})};const link=({isActive})=>`enat-admin-link ${isActive?"active":""}`;return <header className="enat-admin-menu"><div className="enat-admin-inner"><NavLink to="/dashboard-enat" className="enat-admin-brand-link" aria-label="Central ENAT HSI"><BrandingENAT variant="header"/></NavLink><nav><NavLink to="/dashboard-enat" className={link}>📊 Dashboard</NavLink><NavLink to="/tv-admin" className={link}>📺 ENAT TV — Administrativo</NavLink><NavLink to="/tv-rede" className={link}>🔴 ENAT TV — Rede</NavLink><NavLink to="/neurodrive" className={link}>🧠 NeuroDrive</NavLink><NavLink to="/rede-social-admin" className={link}>🌐 Rede Social — Administrativo</NavLink><NavLink to="/cursos/admin" className={link}>📚 Banco de Cursos</NavLink><NavLink to="/alunos" className={link}>👥 Alunos</NavLink><NavLink to="/emissor-certificados" className={link}>🖨️ Emissor</NavLink><NavLink to="/docente-enat" className={link}>🎓 Docente ENAT</NavLink><NavLink to="/caixa-publica" className={link}>📨 Caixa Pública</NavLink><NavLink to="/email-hsi" className={link}>📧 E-mail HSI-DOTH-PG</NavLink><NavLink to="/caixa-publica-editor" className={link}>📰 Artigos & Notícias</NavLink><NavLink to="/depoimentos-admin" className={link}>💬 Depoimentos</NavLink><NavLink to="/configuracao-portal" className={link}>⚙️ Configurações do Portal</NavLink>{profile?.role==="admin"&&<><NavLink to="/usuarios" className={link}>🔐 Usuários</NavLink><a href="https://siges-escola-segura.vercel.app" className="enat-admin-link" target="_blank" rel="noreferrer">🛡️ SIGES — Escola Segura</a></>}</nav><div className="enat-admin-user"><button onClick={()=>navigate("/portal")}>🌐 Site público</button><span>{profile?.display_name||profile?.username}</span><button onClick={logout}>Sair</button></div></div></header>}
+
+const groups = [
+  {
+    title: "Principal",
+    items: [
+      ["/dashboard-enat", "📊", "Dashboard"],
+      ["/home-admin", "🏠", "Central ENAT"],
+    ],
+  },
+  {
+    title: "Gestão acadêmica",
+    items: [
+      ["/cursos/admin", "📚", "Banco de Cursos"],
+      ["/alunos", "👥", "Alunos"],
+      ["/docente-enat", "🎓", "Docente ENAT"],
+      ["/emissor-certificados", "🖨️", "Emissor de Certificados"],
+      ["/relatorio-turmas", "📈", "Relatório de Turmas"],
+      ["/indicacoes", "🤝", "Indicações"],
+    ],
+  },
+  {
+    title: "Conteúdo e comunicação",
+    items: [
+      ["/caixa-publica", "📨", "Caixa Pública"],
+      ["/caixa-publica-editor", "📰", "Artigos & Notícias"],
+      ["/depoimentos-admin", "💬", "Depoimentos"],
+      ["/email-hsi", "📧", "E-mail HSI-DOTH-PG"],
+      ["/rede-social-admin", "🌐", "Rede Social"],
+    ],
+  },
+  {
+    title: "Plataformas ENAT",
+    items: [
+      ["/neurodrive", "🧠", "NeuroDrive"],
+      ["/tv-admin", "📺", "ENAT TV — Administrativo"],
+      ["/tv-rede", "🔴", "ENAT TV — Rede"],
+    ],
+  },
+  {
+    title: "Sistema",
+    items: [
+      ["/configuracao-portal", "⚙️", "Configurações do Portal"],
+      ["/recuperacao", "🔑", "Recuperação de Acesso"],
+    ],
+  },
+];
+
+export function MenuENAT() {
+  const { profile } = useAuth();
+  const navigate = useNavigate();
+  const [mobileOpen, setMobileOpen] = useState(false);
+
+  const logout = async () => {
+    await signOut();
+    navigate("/portal", { replace: true });
+  };
+
+  const closeMobile = () => setMobileOpen(false);
+  const link = ({ isActive }) => `enat-admin-link ${isActive ? "active" : ""}`;
+
+  return (
+    <>
+      <button
+        className="enat-admin-mobile-toggle"
+        type="button"
+        onClick={() => setMobileOpen((value) => !value)}
+        aria-label={mobileOpen ? "Fechar menu administrativo" : "Abrir menu administrativo"}
+        aria-expanded={mobileOpen}
+      >
+        <span />
+        <span />
+        <span />
+      </button>
+
+      {mobileOpen && <button className="enat-admin-overlay" type="button" aria-label="Fechar menu" onClick={closeMobile} />}
+
+      <aside className={`enat-admin-menu ${mobileOpen ? "mobile-open" : ""}`}>
+        <div className="enat-admin-sidebar">
+          <NavLink to="/dashboard-enat" className="enat-admin-brand-link" aria-label="Central ENAT HSI" onClick={closeMobile}>
+            <BrandingENAT variant="header" />
+          </NavLink>
+
+          <div className="enat-admin-context">
+            <span>ADMINISTRAÇÃO</span>
+            <strong>Central ENAT HSI</strong>
+          </div>
+
+          <nav aria-label="Menu administrativo ENAT">
+            {groups.map((group) => (
+              <section className="enat-admin-group" key={group.title}>
+                <h2>{group.title}</h2>
+                {group.items.map(([to, icon, label]) => (
+                  <NavLink key={to} to={to} className={link} onClick={closeMobile}>
+                    <span className="enat-admin-icon" aria-hidden="true">{icon}</span>
+                    <span>{label}</span>
+                  </NavLink>
+                ))}
+              </section>
+            ))}
+
+            {profile?.role === "admin" && (
+              <section className="enat-admin-group">
+                <h2>Administração avançada</h2>
+                <NavLink to="/usuarios" className={link} onClick={closeMobile}>
+                  <span className="enat-admin-icon" aria-hidden="true">🔐</span>
+                  <span>Usuários e permissões</span>
+                </NavLink>
+                <a
+                  href="https://siges-escola-segura.vercel.app"
+                  className="enat-admin-link"
+                  target="_blank"
+                  rel="noreferrer"
+                  onClick={closeMobile}
+                >
+                  <span className="enat-admin-icon" aria-hidden="true">🛡️</span>
+                  <span>SIGES — Escola Segura</span>
+                  <span className="external-mark" aria-hidden="true">↗</span>
+                </a>
+              </section>
+            )}
+          </nav>
+
+          <div className="enat-admin-user">
+            <div className="enat-admin-user-info">
+              <span className="enat-admin-user-avatar">{(profile?.display_name || profile?.username || "A").slice(0, 1).toUpperCase()}</span>
+              <div>
+                <strong>{profile?.display_name || profile?.username}</strong>
+                <small>{profile?.role === "admin" ? "Administrador" : "Equipe ENAT"}</small>
+              </div>
+            </div>
+            <button type="button" onClick={() => navigate("/portal")}>🌐 Site público</button>
+            <button type="button" className="logout" onClick={logout}>Sair</button>
+          </div>
+        </div>
+      </aside>
+    </>
+  );
+}
