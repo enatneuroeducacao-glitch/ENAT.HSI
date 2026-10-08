@@ -326,3 +326,68 @@ body:has(.enat-admin-menu) .dash-head{margin-top:0 !important}
     padding:72px 0 40px !important;
   }
 }
+
+
+/* Estrutura definitiva do conteúdo administrativo: o menu lateral ocupa sua própria coluna. */
+.enat-admin-content{
+  box-sizing:border-box;
+  width:calc(100% - 264px);
+  min-width:0;
+  min-height:100vh;
+  margin-left:264px;
+  padding:36px 28px 56px;
+  background:var(--enat-bg);
+}
+.enat-admin-content > main{
+  box-sizing:border-box;
+  width:100% !important;
+  max-width:none !important;
+  min-height:calc(100vh - 92px) !important;
+  margin:0 !important;
+  padding:0 !important;
+  background:transparent !important;
+}
+.enat-admin-content .dashboard-enat{
+  width:100% !important;
+  max-width:none !important;
+  margin:0 !important;
+  padding:0 !important;
+  background:transparent !important;
+}
+.enat-admin-content .dash-head,
+.enat-admin-content .dash-error,
+.enat-admin-content .dash-cards,
+.enat-admin-content .dash-grid,
+.enat-admin-content .dash-metrics,
+.enat-admin-content > main > .dash-panel,
+.enat-admin-content .dash-shortcuts{
+  width:100%;
+  max-width:1180px;
+  margin-left:auto !important;
+  margin-right:auto !important;
+}
+.enat-admin-content .dash-head{padding-top:0}
+.enat-admin-content .dash-cards{grid-template-columns:repeat(4,minmax(0,1fr))}
+.enat-admin-content .dash-grid{grid-template-columns:minmax(0,1fr) minmax(0,1.35fr)}
+.enat-admin-content .dash-panel{min-width:0}
+.enat-admin-content .dash-table{max-width:100%;overflow-x:auto}
+.enat-admin-content .dash-row{min-width:720px}
+
+@media(max-width:1100px){
+  .enat-admin-content .dash-cards{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .enat-admin-content .dash-grid{grid-template-columns:1fr}
+}
+@media(max-width:900px){
+  .enat-admin-content{
+    width:100%;
+    margin-left:0;
+    padding:72px 18px 40px;
+  }
+  .enat-admin-content > main{min-height:calc(100vh - 112px) !important}
+}
+@media(max-width:560px){
+  .enat-admin-content{padding:72px 12px 40px}
+  .enat-admin-content .dash-cards{grid-template-columns:1fr}
+  .enat-admin-content .dash-head{flex-direction:column}
+  .enat-admin-content .dash-head button{width:100%}
+}
