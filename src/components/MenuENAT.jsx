@@ -100,7 +100,7 @@ export function MenuENAT() {
                 ))}
                 {group.title === "Plataformas ENAT" && profile?.role === "admin" && (
                   <a
-                    href="https://siges-escola-segura.vercel.app"
+                    href="https://siges-escola-segura.onrender.com"
                     className="enat-admin-link"
                     target="_blank"
                     rel="noreferrer"
