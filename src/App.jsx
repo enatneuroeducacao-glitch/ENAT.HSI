@@ -86,6 +86,7 @@ function PrivateArea(){
     <Route path="/caixa-publica" element={<CaixaEntradaPublicaENATNova/>}/>
     <Route path="/email-hsi" element={<EmailHSIAdmin/>}/>
     <Route path="/rede-social-admin" element={<RedeSocialAdmin/>}/>
+    <Route path="/cursos-neurotransito" element={<RedeSocialAdmin initialTab="courses"/>}/>
     <Route path="/caixa-publica-editor" element={<CaixaEntradaPublicaENAT/>}/>
     <Route path="/depoimentos-admin" element={<DepoimentosInstrutoresENAT/>}/>
     <Route path="/configuracao-portal" element={<ConfiguracaoPortalENAT/>}/>
