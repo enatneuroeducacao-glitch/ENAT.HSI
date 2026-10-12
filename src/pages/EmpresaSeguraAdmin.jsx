@@ -6,9 +6,17 @@ const BASE = "https://empresa-segura-enat.onrender.com";
 
 const modules = [
   {
+    group: "Preparação empresarial",
+    title: "Preparar uso da Empresa Segura",
+    description: "Preencher os dados iniciais da organização, setores, público e avaliações de interesse. A solicitação será analisada pelo ENAT antes de qualquer ativação.",
+    icon: "📝",
+    action: "Abrir formulário de preparação",
+    href: `${BASE}/empresa-segura/preparacao`,
+  },
+  {
     group: "Pessoas e organizações",
     title: "Funcionários e profissionais ENAT",
-    description: "Consultar contas cadastradas, atribuir perfil, ativar ou bloquear acesso e definir o ambiente autorizado para cada usuário.",
+    description: "Gerenciar solicitações e acessos já cadastrados, atribuir perfil e ambiente autorizado. Este módulo administrativo exige sessão segura própria.",
     icon: "👥",
     action: "Gerenciar usuários e acessos",
     href: `${BASE}/admin/empresa-segura/funcionarios`,
@@ -16,10 +24,18 @@ const modules = [
   {
     group: "Pessoas e organizações",
     title: "Empresas e vínculos organizacionais",
-    description: "Administrar o vínculo do usuário com a organização, o identificador empresarial e o tipo de acesso ao portal.",
+    description: "Cadastrar a organização após validação, administrar o vínculo dos usuários e definir somente as avaliações negociadas e autorizadas.",
     icon: "🏢",
-    action: "Gerenciar vínculos empresariais",
+    action: "Gerenciar empresas e vínculos",
     href: `${BASE}/admin/empresa-segura/empresas`,
+  },
+  {
+    group: "Preparação empresarial",
+    title: "Solicitações de preparação",
+    description: "Consultar os formulários enviados pelas empresas, revisar os dados e encaminhar as próximas etapas de cadastro e negociação.",
+    icon: "📋",
+    action: "Revisar solicitações recebidas",
+    href: `${BASE}/admin/empresa-segura/preparacoes`,
   },
   {
     group: "Conteúdo e instrumentos",
@@ -74,8 +90,8 @@ export function EmpresaSeguraAdmin() {
       <div><span className="esa-eyebrow">CENTRAL ENAT HSI · ADMINISTRAÇÃO DE PLATAFORMAS</span><h1>Empresa Segura</h1><p>Controle institucional dos profissionais, empresas, instrumentos e resultados submetidos à governança do ENAT.</p></div>
       <a className="esa-back" href="/dashboard-enat">← Dashboard ENAT</a>
     </header>
-    <section className="esa-notice"><span>🛡️</span><div><strong>Governança e segregação de acesso</strong><p>Os ambientes de homologação interna e consulta empresarial permanecem separados. O acesso empresarial deve ser habilitado individualmente e vinculado à organização correta. Somente resultados formalmente liberados devem aparecer no portal da empresa.</p></div></section>
-    <div className="esa-section-heading"><div><span>CONTROLES ADMINISTRATIVOS</span><h2>Gestão da Empresa Segura</h2></div><span className="esa-count">7 áreas de controle</span></div>
+    <section className="esa-notice"><span>🛡️</span><div><strong>Governança e segregação de acesso</strong><p>Comece pelo formulário de preparação empresarial. O ENAT revisa os dados, confirma a negociação e autoriza os instrumentos antes de ativar a empresa. Os ambientes internos e empresariais permanecem separados.</p></div></section>
+    <div className="esa-section-heading"><div><span>CONTROLES ADMINISTRATIVOS</span><h2>Gestão da Empresa Segura</h2></div><span className="esa-count">9 áreas de controle</span></div>
     <section className="esa-grid">
       {modules.map((item) => <article className="esa-card" key={item.title}>
         <div className="esa-card-top"><span className="esa-icon">{item.icon}</span><span className="esa-group">{item.group}</span></div>
@@ -83,6 +99,6 @@ export function EmpresaSeguraAdmin() {
         <a href={item.href} target="_blank" rel="noreferrer">{item.action}<span aria-hidden="true"> ↗</span></a>
       </article>)}
     </section>
-    <footer className="esa-footer">Ações operacionais abrem o módulo seguro da Empresa Segura, que valida novamente a sessão e as permissões. A central HSI não substitui essas verificações.</footer>
+    <footer className="esa-footer">O formulário de preparação registra uma solicitação pendente; não ativa contas nem libera resultados. As ações administrativas protegidas validam novamente a sessão e as permissões.</footer>
   </main>;
 }
