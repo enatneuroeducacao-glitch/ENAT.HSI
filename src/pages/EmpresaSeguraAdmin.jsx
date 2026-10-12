@@ -11,7 +11,7 @@ const modules = [
     description: "Consultar contas cadastradas, atribuir perfil, ativar ou bloquear acesso e definir o ambiente autorizado para cada usuário.",
     icon: "👥",
     action: "Gerenciar usuários e acessos",
-    href: `${BASE}/admin/empresa-segura`,
+    href: `${BASE}/admin/empresa-segura/funcionarios`,
   },
   {
     group: "Pessoas e organizações",
@@ -19,7 +19,7 @@ const modules = [
     description: "Administrar o vínculo do usuário com a organização, o identificador empresarial e o tipo de acesso ao portal.",
     icon: "🏢",
     action: "Gerenciar vínculos empresariais",
-    href: `${BASE}/admin/empresa-segura`,
+    href: `${BASE}/admin/empresa-segura/empresas`,
   },
   {
     group: "Conteúdo e instrumentos",
