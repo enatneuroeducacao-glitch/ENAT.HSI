@@ -42,6 +42,7 @@ import { ENATTVNetworkAdmin } from "./pages/ENATTVNetworkAdmin";
 import { ENATTVStudio } from "./pages/ENATTVStudio";
 import { EmailHSIAdmin } from "./pages/EmailHSIAdmin";
 import { RedeSocialAdmin } from "./pages/RedeSocialAdmin";
+import { EmpresaSeguraAdmin } from "./pages/EmpresaSeguraAdmin";
 
 const isGitHubProjectPages=window.location.hostname.endsWith("github.io")&&window.location.pathname.startsWith("/ENAT.HSI");
 const APP_BASENAME=isGitHubProjectPages?"/ENAT.HSI":"";
@@ -60,6 +61,7 @@ function PrivateArea(){
   <div className="enat-admin-content">
    <Routes>
     <Route path="/dashboard-enat" element={<DashboardENAT/>}/>
+    <Route path="/empresa-segura-admin" element={<EmpresaSeguraAdmin/>}/>
     <Route path="/home-admin" element={<Home/>}/>
     <Route path="/sobre" element={<SobreENAT/>}/>
     <Route path="/produtos" element={<ProdutosENAT/>}/>
