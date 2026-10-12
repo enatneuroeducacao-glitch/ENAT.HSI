@@ -16,6 +16,7 @@ const groups = [
     title: "Gestão acadêmica",
     items: [
       ["/cursos/admin", "📚", "Banco de Cursos"],
+      ["/cursos-neurotransito", "📝", "Cursos Neurotrânsito"],
       ["/alunos", "👥", "Alunos"],
       ["/docente-enat", "🎓", "Docente ENAT"],
       ["/emissor-certificados", "🖨️", "Emissor de Certificados"],
