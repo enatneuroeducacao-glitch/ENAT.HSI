@@ -8,9 +8,9 @@ const danger={...btn,borderColor:"rgba(255,100,100,.35)",color:"#ffb8b8",backgro
 const fmt=v=>Number(v||0).toLocaleString("pt-BR");
 const date=v=>v?new Date(v).toLocaleString("pt-BR"):"—";
 
-export function RedeSocialAdmin(){
+export function RedeSocialAdmin({initialTab="overview"}){
  const[data,setData]=useState({profiles:[],posts:[],reports:[],communities:[],activity:[],assessments:[],counts:{profiles:0,posts:0,reports:0,communities:0,activity:0,assessments:0}});
- const[loading,setLoading]=useState(true),[error,setError]=useState(""),[tab,setTab]=useState("overview"),[busy,setBusy]=useState("");
+ const[loading,setLoading]=useState(true),[error,setError]=useState(""),[tab,setTab]=useState(initialTab),[busy,setBusy]=useState("");
  const[courses,setCourses]=useState([]),[courseLoading,setCourseLoading]=useState(false),[courseError,setCourseError]=useState(""),[courseSearch,setCourseSearch]=useState(""),[editingCourse,setEditingCourse]=useState(null),[courseSaving,setCourseSaving]=useState(false),[courseNotice,setCourseNotice]=useState("");
  const load=useCallback(async()=>{
   if(!supabase){setError("Supabase da Central ENAT HSI não está configurado.");setLoading(false);return}
@@ -38,7 +38,7 @@ export function RedeSocialAdmin(){
  useEffect(()=>{load();const t=window.setInterval(load,30000);return()=>window.clearInterval(t)},[load]);
  const loadCourses=useCallback(async()=>{
   if(!supabase){setCourseError("Supabase da Central ENAT HSI não está configurado.");return}
-  setCourseLoading(true);setCourseError("");setCourseNotice("");
+  setCourseLoading(true);setCourseError("");
   try{const r=await supabase.from("enat_courses").select("id,name,code,nature,modality,summary,category,hours,slug,active,published,thumbnail_url").order("name").limit(200);if(r.error)throw r.error;setCourses(r.data||[])}catch(e){setCourseError(e?.message||"Não foi possível carregar os cursos da Rede Neurotrânsito.")}finally{setCourseLoading(false)}
  },[]);
  useEffect(()=>{if(tab==="courses")loadCourses()},[tab,loadCourses]);
