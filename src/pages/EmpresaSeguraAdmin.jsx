@@ -6,73 +6,73 @@ const BASE = "https://empresa-segura-enat.onrender.com";
 
 const modules = [
   {
-    group: "Preparação empresarial",
+    group: "PRIMEIRA ETAPA · EMPRESA",
     title: "Preparar uso da Empresa Segura",
-    description: "Preencher os dados iniciais da organização, setores, público e avaliações de interesse. A solicitação será analisada pelo ENAT antes de qualquer ativação.",
+    description: "Comece aqui: registre a empresa, o responsável, os setores e as avaliações de interesse. O ENAT analisará a solicitação antes de criar acessos ou ativar instrumentos.",
     icon: "📝",
-    action: "Abrir formulário de preparação",
+    action: "Preencher formulário empresarial",
     href: `${BASE}/empresa-segura/preparacao`,
   },
   {
-    group: "Pessoas e organizações",
-    title: "Funcionários e profissionais ENAT",
-    description: "Gerenciar solicitações e acessos já cadastrados, atribuir perfil e ambiente autorizado. Este módulo administrativo exige sessão segura própria.",
-    icon: "👥",
-    action: "Gerenciar usuários e acessos",
-    href: `${BASE}/admin/empresa-segura/funcionarios`,
+    group: "PRIMEIRA ETAPA · EMPRESA",
+    title: "Gerenciar usuários e preparar empresa",
+    description: "Inicie a preparação para uso empresarial preenchendo os dados da organização. A tela de login dos usuários só deve ser utilizada depois da análise e da ativação pelo ENAT.",
+    icon: "🏢",
+    action: "Iniciar preparação da empresa",
+    href: `${BASE}/empresa-segura/preparacao`,
   },
   {
-    group: "Pessoas e organizações",
+    group: "PESSOAS E ORGANIZAÇÕES",
     title: "Empresas e vínculos organizacionais",
-    description: "Cadastrar a organização após validação, administrar o vínculo dos usuários e definir somente as avaliações negociadas e autorizadas.",
-    icon: "🏢",
+    description: "Após a análise e a negociação, cadastre a organização, vincule o gestor responsável e marque somente as avaliações efetivamente autorizadas.",
+    icon: "🏬",
     action: "Gerenciar empresas e vínculos",
     href: `${BASE}/admin/empresa-segura/empresas`,
   },
   {
-    group: "Preparação empresarial",
-    title: "Solicitações de preparação",
-    description: "Consultar os formulários enviados pelas empresas, revisar os dados e encaminhar as próximas etapas de cadastro e negociação.",
-    icon: "📋",
-    action: "Revisar solicitações recebidas",
-    href: `${BASE}/admin/empresa-segura/preparacoes`,
-  },
-  {
-    group: "Conteúdo e instrumentos",
+    group: "CONTEÚDO E INSTRUMENTOS",
     title: "Setores, funções e avaliações",
-    description: "Acessar o catálogo administrativo da Empresa Segura para gerir os elementos disponíveis no ambiente empresarial.",
+    description: "Gerir o catálogo institucional de setores, funções e instrumentos que poderão ser autorizados para cada organização.",
     icon: "🧩",
     action: "Abrir catálogo administrativo",
     href: `${BASE}/admin/empresa-segura/catalogo`,
   },
   {
-    group: "Homologação ENAT",
+    group: "HOMOLOGAÇÃO ENAT",
+    title: "Solicitações de preparação",
+    description: "Consultar as informações enviadas pelas empresas e encaminhar as próximas etapas de validação, negociação e cadastro.",
+    icon: "📋",
+    action: "Revisar solicitações recebidas",
+    href: `${BASE}/admin/empresa-segura/preparacoes`,
+  },
+  {
+    group: "HOMOLOGAÇÃO ENAT",
+    title: "Funcionários e profissionais ENAT",
+    description: "Gerenciar os acessos institucionais e os perfis dos profissionais autorizados. Esta área é administrativa e não é o formulário de adesão da empresa.",
+    icon: "👥",
+    action: "Gerenciar acessos ENAT",
+    href: `${BASE}/admin/empresa-segura/funcionarios`,
+  },
+  {
+    group: "HOMOLOGAÇÃO ENAT",
     title: "Resultados e publicações",
-    description: "Registrar e liberar resultados para a empresa identificada. A publicação deve ocorrer somente após revisão do ENAT.",
+    description: "Revisar e liberar resultados formalmente autorizados para a empresa correspondente.",
     icon: "📊",
     action: "Revisar e liberar resultados",
     href: `${BASE}/admin/empresa-segura/resultados`,
   },
   {
-    group: "Homologação ENAT",
+    group: "HOMOLOGAÇÃO ENAT",
     title: "Revisão de testes internos",
-    description: "Consultar sessões demonstrativas registradas pelos profissionais ENAT e registrar a revisão institucional sem publicar automaticamente resultados empresariais.",
+    description: "Consultar sessões demonstrativas internas e registrar a revisão institucional, sem publicação automática de resultados empresariais.",
     icon: "🧾",
     action: "Revisar sessões submetidas",
     href: `${BASE}/admin/empresa-segura/testes`,
   },
   {
-    group: "Homologação ENAT",
-    title: "Ambiente interno de testes",
-    description: "Abrir o ambiente profissional para executar testes e homologar instrumentos sem confundir testes internos com resultados empresariais liberados.",
-    icon: "🧪",
-    action: "Abrir ambiente profissional",
-    href: `${BASE}/empresa-segura?entrar=1&perfil=profissionais`,
-  },
-  {
-    group: "Acesso externo",
-    title: "Portal da empresa",
-    description: "Conferir a experiência empresarial. Cada conta deve consultar apenas os resultados liberados para a própria organização.",
+    group: "ACESSO AOS AMBIENTES",
+    title: "Portal empresarial",
+    description: "Acessar a experiência da empresa depois de ativação e criação do gestor autorizado. Cada organização vê apenas os resultados liberados para si.",
     icon: "🔐",
     action: "Abrir portal empresarial",
     href: `${BASE}/empresa-segura?entrar=1&perfil=empresa`,
@@ -90,7 +90,7 @@ export function EmpresaSeguraAdmin() {
       <div><span className="esa-eyebrow">CENTRAL ENAT HSI · ADMINISTRAÇÃO DE PLATAFORMAS</span><h1>Empresa Segura</h1><p>Controle institucional dos profissionais, empresas, instrumentos e resultados submetidos à governança do ENAT.</p></div>
       <a className="esa-back" href="/dashboard-enat">← Dashboard ENAT</a>
     </header>
-    <section className="esa-notice"><span>🛡️</span><div><strong>Governança e segregação de acesso</strong><p>Comece pelo formulário de preparação empresarial. O ENAT revisa os dados, confirma a negociação e autoriza os instrumentos antes de ativar a empresa. Os ambientes internos e empresariais permanecem separados.</p></div></section>
+    <section className="esa-notice"><span>🛡️</span><div><strong>Fluxo correto de preparação</strong><p>Para começar, abra o formulário de preparação empresarial. O login de usuários não substitui o cadastro inicial da organização. O ENAT revisa os dados, confirma a negociação e autoriza os instrumentos antes de ativar a empresa.</p></div></section>
     <div className="esa-section-heading"><div><span>CONTROLES ADMINISTRATIVOS</span><h2>Gestão da Empresa Segura</h2></div><span className="esa-count">9 áreas de controle</span></div>
     <section className="esa-grid">
       {modules.map((item) => <article className="esa-card" key={item.title}>
@@ -99,6 +99,6 @@ export function EmpresaSeguraAdmin() {
         <a href={item.href} target="_blank" rel="noreferrer">{item.action}<span aria-hidden="true"> ↗</span></a>
       </article>)}
     </section>
-    <footer className="esa-footer">O formulário de preparação registra uma solicitação pendente; não ativa contas nem libera resultados. As ações administrativas protegidas validam novamente a sessão e as permissões.</footer>
+    <footer className="esa-footer">O formulário de preparação registra uma solicitação pendente; não ativa contas nem libera resultados. As áreas administrativas protegidas validam novamente a sessão e as permissões.</footer>
   </main>;
 }
