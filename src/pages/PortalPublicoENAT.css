@@ -4,8 +4,8 @@
 /* Empresa Segura compact navigation + floating admin shortcut */
 .portal-empresa-link{display:inline-flex;align-items:center;gap:6px;text-decoration:none;color:#bfe8e7;padding:8px 10px;border:1px solid #285b65;background:#102d3a;border-radius:8px;white-space:nowrap;font-size:12px;font-weight:800;flex:0 0 auto;transition:background .18s ease,border-color .18s ease}
 .portal-empresa-link:hover{background:#174354;border-color:#438d91;color:#fff}
-.admin-gear{position:fixed;right:22px;bottom:24px;z-index:1100;width:48px;height:48px;border:1px solid #34576e;border-radius:50%;display:grid;place-items:center;background:#071b29;color:#c3e9f7;box-shadow:0 8px 24px #07111b40;cursor:pointer;transition:transform .18s ease,background .18s ease}
+.admin-gear{position:fixed;right:22px;bottom:88px;z-index:1100;width:48px;height:48px;border:1px solid #34576e;border-radius:50%;display:grid;place-items:center;background:#071b29;color:#c3e9f7;box-shadow:0 8px 24px #07111b40;cursor:pointer;transition:transform .18s ease,background .18s ease}
 .admin-gear span{font-size:25px;line-height:1}
 .admin-gear:hover{background:#12384c;transform:rotate(25deg)}
 .admin-gear:focus-visible,.portal-empresa-link:focus-visible{outline:3px solid #77d3d0;outline-offset:3px}
-@media(max-width:700px){.portal-empresa-link{padding:8px 9px;font-size:11px}.admin-gear{right:14px;bottom:18px;width:44px;height:44px}.portal-header nav{gap:3px}}
+@media(max-width:700px){.portal-empresa-link{padding:8px 9px;font-size:11px}.admin-gear{right:14px;bottom:78px;width:44px;height:44px}.portal-header nav{gap:3px}}
