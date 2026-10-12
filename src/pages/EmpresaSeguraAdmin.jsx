@@ -39,6 +39,14 @@ const modules = [
   },
   {
     group: "Homologação ENAT",
+    title: "Revisão de testes internos",
+    description: "Consultar sessões demonstrativas registradas pelos profissionais ENAT e registrar a revisão institucional sem publicar automaticamente resultados empresariais.",
+    icon: "🧾",
+    action: "Revisar sessões submetidas",
+    href: `${BASE}/admin/empresa-segura/testes`,
+  },
+  {
+    group: "Homologação ENAT",
     title: "Ambiente interno de testes",
     description: "Abrir o ambiente profissional para executar testes e homologar instrumentos sem confundir testes internos com resultados empresariais liberados.",
     icon: "🧪",
@@ -67,7 +75,7 @@ export function EmpresaSeguraAdmin() {
       <a className="esa-back" href="/dashboard-enat">← Dashboard ENAT</a>
     </header>
     <section className="esa-notice"><span>🛡️</span><div><strong>Governança e segregação de acesso</strong><p>Os ambientes de homologação interna e consulta empresarial permanecem separados. O acesso empresarial deve ser habilitado individualmente e vinculado à organização correta. Somente resultados formalmente liberados devem aparecer no portal da empresa.</p></div></section>
-    <div className="esa-section-heading"><div><span>CONTROLES ADMINISTRATIVOS</span><h2>Gestão da Empresa Segura</h2></div><span className="esa-count">6 áreas de controle</span></div>
+    <div className="esa-section-heading"><div><span>CONTROLES ADMINISTRATIVOS</span><h2>Gestão da Empresa Segura</h2></div><span className="esa-count">7 áreas de controle</span></div>
     <section className="esa-grid">
       {modules.map((item) => <article className="esa-card" key={item.title}>
         <div className="esa-card-top"><span className="esa-icon">{item.icon}</span><span className="esa-group">{item.group}</span></div>
