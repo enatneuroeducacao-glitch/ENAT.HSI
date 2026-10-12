@@ -55,19 +55,19 @@ const modules = [
   },
   {
     group: "HOMOLOGAÇÃO ENAT",
-    title: "Resultados e publicações",
-    description: "Revisar e liberar resultados formalmente autorizados para a empresa correspondente.",
-    icon: "📊",
-    action: "Revisar e liberar resultados",
-    href: `${BASE}/admin/empresa-segura/resultados`,
-  },
-  {
-    group: "HOMOLOGAÇÃO ENAT",
     title: "Revisão de testes internos",
-    description: "Consultar sessões demonstrativas internas e registrar a revisão institucional, sem publicação automática de resultados empresariais.",
+    description: "Etapa obrigatória antes da publicação: consultar as sessões submetidas, conferir respostas e registrar a revisão institucional. A revisão não publica resultados automaticamente.",
     icon: "🧾",
     action: "Revisar sessões submetidas",
     href: `${BASE}/admin/empresa-segura/testes`,
+  },
+  {
+    group: "HOMOLOGAÇÃO ENAT",
+    title: "Resultados e publicações",
+    description: "Após a revisão institucional e a confirmação das autorizações, liberar resultados para a empresa correspondente.",
+    icon: "📊",
+    action: "Revisar e liberar resultados",
+    href: `${BASE}/admin/empresa-segura/resultados`,
   },
   {
     group: "ACESSO AOS AMBIENTES",
