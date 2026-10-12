@@ -112,6 +112,19 @@ export function MenuENAT() {
                     <span className="external-mark" aria-hidden="true">↗</span>
                   </a>
                 )}
+                {group.title === "Plataformas ENAT" && profile?.role === "admin" && (
+                  <a
+                    href="https://empresa-segura-enat.onrender.com/admin/empresa-segura"
+                    className="enat-admin-link"
+                    target="_blank"
+                    rel="noreferrer"
+                    onClick={closeMobile}
+                  >
+                    <span className="enat-admin-icon" aria-hidden="true">🏢</span>
+                    <span>Empresa Segura — Administrativo</span>
+                    <span className="external-mark" aria-hidden="true">↗</span>
+                  </a>
+                )}
               </section>
             ))}
 
