@@ -8,10 +8,10 @@ const modules = [
   {
     group: "PRIMEIRA ETAPA · EMPRESA",
     title: "Preparar uso da Empresa Segura",
-    description: "Comece aqui: registre a empresa, o responsável, os setores e as avaliações de interesse. O ENAT analisará a solicitação antes de criar acessos ou ativar instrumentos.",
+    description: "Este acesso é destinado à própria empresa: o responsável preenche seus dados, informa setores e áreas de interesse e solicita o cadastro. O ENAT recebe o formulário preenchido para preparar o atendimento e analisar os próximos passos.",
     icon: "📝",
-    action: "Preencher formulário empresarial",
-    href: `${BASE}/empresa-segura/preparacao`,
+    action: "Abrir cadastro da empresa",
+    href: `${BASE}/empresa-segura/cadastro?perfil=empresa`,
   },
   {
     group: "ACESSOS EMPRESARIAIS",
@@ -90,7 +90,7 @@ export function EmpresaSeguraAdmin() {
       <div><span className="esa-eyebrow">CENTRAL ENAT HSI · ADMINISTRAÇÃO DE PLATAFORMAS</span><h1>Empresa Segura</h1><p>Controle institucional dos profissionais, empresas, instrumentos e resultados submetidos à governança do ENAT.</p></div>
       <a className="esa-back" href="/dashboard-enat">← Dashboard ENAT</a>
     </header>
-    <section className="esa-notice"><span>🛡️</span><div><strong>Fluxo correto de preparação</strong><p>Para começar, abra o formulário de preparação empresarial. O login de usuários não substitui o cadastro inicial da organização. O ENAT revisa os dados, confirma a negociação e autoriza os instrumentos antes de ativar a empresa.</p></div></section>
+    <section className="esa-notice"><span>🛡️</span><div><strong>Fluxo correto de preparação</strong><p>O formulário é preenchido pela própria empresa durante o cadastro. O ENAT recebe os dados enviados, analisa a necessidade, prepara o atendimento e só depois confirma o escopo, cadastra a organização e autoriza os acessos.</p></div></section>
     <div className="esa-section-heading"><div><span>CONTROLES ADMINISTRATIVOS</span><h2>Gestão da Empresa Segura</h2></div><span className="esa-count">9 áreas de controle</span></div>
     <section className="esa-grid">
       {modules.map((item) => <article className="esa-card" key={item.title}>
