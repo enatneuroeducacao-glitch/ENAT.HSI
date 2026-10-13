@@ -6,6 +6,14 @@ const BASE = "https://empresa-segura-enat.onrender.com";
 
 const modules = [
   {
+    group: "PAINEL CENTRAL · FILA DE TRABALHO",
+    title: "Painel de fluxo e pendências",
+    description: "Visão operacional com solicitações empresariais pendentes, pedidos de acesso de funcionários e profissionais e atalhos para executar a próxima ação administrativa. Use este painel para acompanhar o fluxo, não para preencher cadastros novamente.",
+    icon: "📊",
+    action: "Abrir painel de pendências",
+    href: `${BASE}/admin/empresa-segura`,
+  },
+  {
     group: "ETAPA 1 · ENTRADA DE SOLICITAÇÕES",
     title: "Solicitações de empresas",
     description: "Fila administrativa dos cadastros enviados pelo formulário público. Consulte responsável, CNPJ, contato, número de colaboradores, setores e áreas de interesse; registre a análise sem pedir que a empresa preencha novamente.",
@@ -105,7 +113,7 @@ export function EmpresaSeguraAdmin() {
         <h3>{step.title}</h3><p>{step.text}</p>
       </article>)}
     </section>
-    <div className="esa-section-heading"><div><span>FILAS E AÇÕES ADMINISTRATIVAS</span><h2>Gestão da Empresa Segura</h2></div><span className="esa-count">9 áreas de controle</span></div>
+    <div className="esa-section-heading"><div><span>FILAS E AÇÕES ADMINISTRATIVAS</span><h2>Gestão da Empresa Segura</h2></div><span className="esa-count">10 áreas de controle</span></div>
     <section className="esa-grid">
       {modules.map((item) => <article className="esa-card" key={item.title}>
         <div className="esa-card-top"><span className="esa-icon">{item.icon}</span><span className="esa-group">{item.group}</span></div>
