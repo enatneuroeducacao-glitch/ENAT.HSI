@@ -6,77 +6,84 @@ const BASE = "https://empresa-segura-enat.onrender.com";
 
 const modules = [
   {
-    group: "PRIMEIRA ETAPA · EMPRESA",
-    title: "Cadastros recebidos das empresas",
-    description: "Consultar os formulários já enviados pelas empresas, visualizar os dados do responsável, da organização, dos colaboradores, dos setores e das áreas de interesse. Não solicitar novo preenchimento.",
+    group: "ETAPA 1 · ENTRADA DE SOLICITAÇÕES",
+    title: "Solicitações de empresas",
+    description: "Fila administrativa dos cadastros enviados pelo formulário público. Consulte responsável, CNPJ, contato, número de colaboradores, setores e áreas de interesse; registre a análise sem pedir que a empresa preencha novamente.",
     icon: "📥",
-    action: "Consultar cadastros recebidos",
+    action: "Analisar solicitações recebidas",
     href: `${BASE}/admin/empresa-segura/preparacoes`,
   },
   {
-    group: "ACESSOS EMPRESARIAIS",
-    title: "Acessos e gestores das empresas",
-    description: "Revisar contas empresariais existentes, vincular cada usuário a uma empresa ativa e definir o perfil de gestor ou participante. Não substitui a análise da solicitação nem a autorização do escopo.",
-    icon: "🔑",
-    action: "Gerenciar acessos empresariais",
-    href: `${BASE}/admin/empresa-segura/acessos-empresariais`,
+    group: "ETAPA 1 · ENTRADA DE SOLICITAÇÕES",
+    title: "Solicitações de funcionários e profissionais",
+    description: "Consulte as contas e solicitações de acesso enviadas por funcionários e profissionais. Confira a empresa declarada, a função e o status antes de autorizar qualquer acesso.",
+    icon: "👥",
+    action: "Revisar solicitações de pessoas",
+    href: `${BASE}/admin/empresa-segura/funcionarios`,
   },
   {
-    group: "PESSOAS E ORGANIZAÇÕES",
+    group: "ETAPA 2 · ANÁLISE E PREPARAÇÃO",
     title: "Empresas e vínculos organizacionais",
-    description: "Após a análise e a negociação, cadastre a organização, vincule o gestor responsável e marque somente as avaliações efetivamente autorizadas.",
-    icon: "🏬",
-    action: "Gerenciar empresas e vínculos",
+    description: "Depois de analisar a solicitação e confirmar as condições, cadastre ou ative a organização, vincule o responsável e registre somente o escopo aprovado. Não use esta etapa para repetir o cadastro inicial.",
+    icon: "🏢",
+    action: "Configurar empresa e escopo",
     href: `${BASE}/admin/empresa-segura/empresas`,
   },
   {
-    group: "CONTEÚDO E INSTRUMENTOS",
-    title: "Setores, funções e avaliações",
-    description: "Gerir o catálogo institucional de setores, funções e instrumentos que poderão ser autorizados para cada organização.",
+    group: "ETAPA 3 · AUTORIZAÇÕES",
+    title: "Acessos e gestores empresariais",
+    description: "Vincule usuários à organização correta, defina gestores e participantes e libere acessos somente depois de confirmar que a empresa está ativa e que o escopo foi autorizado.",
+    icon: "🔑",
+    action: "Gerenciar gestores e acessos",
+    href: `${BASE}/admin/empresa-segura/acessos-empresariais`,
+  },
+  {
+    group: "ETAPA 3 · AUTORIZAÇÕES",
+    title: "Catálogo de setores, funções e avaliações",
+    description: "Mantenha o catálogo institucional que será utilizado na configuração das empresas. A existência de um instrumento no catálogo não significa autorização automática para aplicá-lo.",
     icon: "🧩",
-    action: "Abrir catálogo administrativo",
+    action: "Gerenciar catálogo institucional",
     href: `${BASE}/admin/empresa-segura/catalogo`,
   },
   {
-    group: "HOMOLOGAÇÃO ENAT",
-    title: "Análise e preparação das solicitações",
-    description: "Dar andamento aos cadastros recebidos: analisar a necessidade, registrar a negociação e encaminhar as etapas de validação antes de criar vínculos ou liberar acessos.",
-    icon: "📋",
-    action: "Analisar e preparar atendimento",
-    href: `${BASE}/admin/empresa-segura/preparacoes`,
-  },
-  {
-    group: "EQUIPE INTERNA ENAT",
-    title: "Funcionários e profissionais ENAT",
-    description: "Analisar solicitações de profissionais internos, atribuir perfis de trabalho e liberar ou bloquear o acesso ao ambiente de testes e homologação do ENAT.",
-    icon: "👥",
-    action: "Gerenciar equipe ENAT",
+    group: "ETAPA 3 · EQUIPE ENAT",
+    title: "Equipe interna ENAT",
+    description: "Gerencie profissionais internos, perfis de trabalho e permissões para testes e homologação. Esta área é distinta das solicitações de funcionários das empresas clientes.",
+    icon: "🛡️",
+    action: "Gerenciar equipe interna",
     href: `${BASE}/admin/empresa-segura/profissionais`,
   },
   {
-    group: "HOMOLOGAÇÃO ENAT",
+    group: "ETAPA 4 · HOMOLOGAÇÃO",
     title: "Revisão de testes internos",
-    description: "Etapa obrigatória antes da publicação: consultar as sessões submetidas, conferir respostas e registrar a revisão institucional. A revisão não publica resultados automaticamente.",
+    description: "Revise as sessões submetidas, confira as respostas e registre a decisão institucional. Resultados não devem ser publicados antes da revisão.",
     icon: "🧾",
-    action: "Revisar sessões submetidas",
+    action: "Revisar testes submetidos",
     href: `${BASE}/admin/empresa-segura/testes`,
   },
   {
-    group: "HOMOLOGAÇÃO ENAT",
+    group: "ETAPA 5 · PUBLICAÇÃO CONTROLADA",
     title: "Resultados e publicações",
-    description: "Após a revisão institucional e a confirmação das autorizações, liberar resultados para a empresa correspondente.",
+    description: "Publique ou libere resultados somente após a revisão institucional e a confirmação das autorizações aplicáveis à organização.",
     icon: "📊",
     action: "Revisar e liberar resultados",
     href: `${BASE}/admin/empresa-segura/resultados`,
   },
   {
-    group: "ACESSO AOS AMBIENTES",
+    group: "ETAPA 6 · ACESSO DA ORGANIZAÇÃO",
     title: "Portal empresarial",
-    description: "Acessar a experiência da empresa depois de ativação e criação do gestor autorizado. Cada organização vê apenas os resultados liberados para si.",
+    description: "Acesse a experiência destinada à empresa depois da ativação e da criação do gestor autorizado. O portal empresarial não é uma área de administração do ENAT.",
     icon: "🔐",
     action: "Abrir portal empresarial",
     href: `${BASE}/empresa-segura?entrar=1&perfil=empresa`,
   },
+];
+
+const workflow = [
+  { number: "01", title: "Receber", text: "Cadastros de empresas e solicitações de pessoas entram nas filas administrativas." },
+  { number: "02", title: "Analisar", text: "O ENAT revisa os dados, registra a decisão e confirma o escopo." },
+  { number: "03", title: "Configurar e autorizar", text: "Cadastrar a organização, vincular responsáveis e liberar apenas acessos aprovados." },
+  { number: "04", title: "Homologar e publicar", text: "Revisar os testes antes de liberar resultados para a organização correta." },
 ];
 
 export function EmpresaSeguraAdmin() {
@@ -87,11 +94,18 @@ export function EmpresaSeguraAdmin() {
 
   return <main className="esa-page">
     <header className="esa-header">
-      <div><span className="esa-eyebrow">CENTRAL ENAT HSI · ADMINISTRAÇÃO DE PLATAFORMAS</span><h1>Empresa Segura</h1><p>Controle institucional dos profissionais, empresas, instrumentos e resultados submetidos à governança do ENAT.</p></div>
+      <div><span className="esa-eyebrow">CENTRAL ENAT HSI · ADMINISTRAÇÃO DE PLATAFORMAS</span><h1>Empresa Segura</h1><p>Central administrativa para receber solicitações, analisar cadastros, autorizar acessos e conduzir a homologação. Esta área é exclusiva da administração ENAT.</p></div>
       <a className="esa-back" href="/dashboard-enat">← Dashboard ENAT</a>
     </header>
-    <section className="esa-notice"><span>🛡️</span><div><strong>Fluxo correto de preparação</strong><p>O formulário é preenchido pela própria empresa durante o cadastro. O ENAT recebe os dados enviados, analisa a necessidade, prepara o atendimento e só depois confirma o escopo, cadastra a organização e autoriza os acessos.</p></div></section>
-    <div className="esa-section-heading"><div><span>CONTROLES ADMINISTRATIVOS</span><h2>Gestão da Empresa Segura</h2></div><span className="esa-count">9 áreas de controle</span></div>
+    <section className="esa-notice"><span>🛡️</span><div><strong>Um fluxo administrativo, sem cadastros duplicados</strong><p>O formulário público alimenta a fila de solicitações empresariais; o cadastro de funcionários e profissionais alimenta a fila de pessoas. A partir dessas filas, o ENAT executa as próximas ações. Nenhum card desta central deve encaminhar o administrador ao formulário público para redigitar dados.</p></div></section>
+    <div className="esa-section-heading"><div><span>FLUXO OPERACIONAL</span><h2>Da solicitação à liberação</h2></div></div>
+    <section className="esa-grid">
+      {workflow.map((step) => <article className="esa-card" key={step.number}>
+        <div className="esa-card-top"><span className="esa-icon">{step.number}</span><span className="esa-group">ETAPA DO FLUXO</span></div>
+        <h3>{step.title}</h3><p>{step.text}</p>
+      </article>)}
+    </section>
+    <div className="esa-section-heading"><div><span>FILAS E AÇÕES ADMINISTRATIVAS</span><h2>Gestão da Empresa Segura</h2></div><span className="esa-count">9 áreas de controle</span></div>
     <section className="esa-grid">
       {modules.map((item) => <article className="esa-card" key={item.title}>
         <div className="esa-card-top"><span className="esa-icon">{item.icon}</span><span className="esa-group">{item.group}</span></div>
@@ -99,6 +113,6 @@ export function EmpresaSeguraAdmin() {
         <a href={item.href} target="_blank" rel="noreferrer">{item.action}<span aria-hidden="true"> ↗</span></a>
       </article>)}
     </section>
-    <footer className="esa-footer">O formulário de preparação registra uma solicitação pendente; não ativa contas nem libera resultados. As áreas administrativas protegidas validam novamente a sessão e as permissões.</footer>
+    <footer className="esa-footer">Princípio de governança: solicitação recebida ≠ empresa ativa ≠ acesso autorizado ≠ resultado publicado. Cada transição deve ser registrada na área operacional correspondente.</footer>
   </main>;
 }
