@@ -7,11 +7,11 @@ const BASE = "https://empresa-segura-enat.onrender.com";
 const modules = [
   {
     group: "PRIMEIRA ETAPA · EMPRESA",
-    title: "Preparar uso da Empresa Segura",
-    description: "Este acesso é destinado à própria empresa: o responsável preenche seus dados, informa setores e áreas de interesse e solicita o cadastro. O ENAT recebe o formulário preenchido para preparar o atendimento e analisar os próximos passos.",
-    icon: "📝",
-    action: "Abrir cadastro da empresa",
-    href: `${BASE}/empresa-segura/cadastro?perfil=empresa`,
+    title: "Cadastros recebidos das empresas",
+    description: "Consultar os formulários já enviados pelas empresas, visualizar os dados do responsável, da organização, dos colaboradores, dos setores e das áreas de interesse. Não solicitar novo preenchimento.",
+    icon: "📥",
+    action: "Consultar cadastros recebidos",
+    href: `${BASE}/admin/empresa-segura/preparacoes`,
   },
   {
     group: "ACESSOS EMPRESARIAIS",
@@ -39,10 +39,10 @@ const modules = [
   },
   {
     group: "HOMOLOGAÇÃO ENAT",
-    title: "Solicitações de preparação",
-    description: "Consultar as informações enviadas pelas empresas e encaminhar as próximas etapas de validação, negociação e cadastro.",
+    title: "Análise e preparação das solicitações",
+    description: "Dar andamento aos cadastros recebidos: analisar a necessidade, registrar a negociação e encaminhar as etapas de validação antes de criar vínculos ou liberar acessos.",
     icon: "📋",
-    action: "Revisar solicitações recebidas",
+    action: "Analisar e preparar atendimento",
     href: `${BASE}/admin/empresa-segura/preparacoes`,
   },
   {
