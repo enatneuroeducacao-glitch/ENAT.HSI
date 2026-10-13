@@ -30,12 +30,12 @@ const modules = [
     href: `${BASE}/admin/empresa-segura/funcionarios`,
   },
   {
-    group: "ETAPA 2 · ANÁLISE E PREPARAÇÃO",
-    title: "Empresas e vínculos organizacionais",
-    description: "Depois de analisar a solicitação e confirmar as condições, cadastre ou ative a organização, vincule o responsável e registre somente o escopo aprovado. Não use esta etapa para repetir o cadastro inicial.",
-    icon: "🏢",
-    action: "Configurar empresa e escopo",
-    href: `${BASE}/admin/empresa-segura/empresas`,
+    group: "ETAPA 2 · FLUXO DE TRABALHO",
+    title: "Acompanhar solicitações e encaminhamentos",
+    description: "Abra a caixa de entrada administrativa para consultar cadastros recebidos, registrar a análise e continuar com uma solicitação aprovada. A configuração da organização deve ser aberta a partir do registro aprovado, com os dados já carregados.",
+    icon: "🗂️",
+    action: "Abrir caixa de entrada administrativa",
+    href: `${BASE}/admin/empresa-segura`,
   },
   {
     group: "ETAPA 3 · AUTORIZAÇÕES",
