@@ -100,17 +100,30 @@ export function MenuENAT() {
                   </NavLink>
                 ))}
                 {group.title === "Plataformas ENAT" && profile?.role === "admin" && (
-                  <a
-                    href="https://siges-escola-segura.onrender.com"
-                    className="enat-admin-link"
-                    target="_blank"
-                    rel="noreferrer"
-                    onClick={closeMobile}
-                  >
-                    <span className="enat-admin-icon" aria-hidden="true">🛡️</span>
-                    <span>SIGES — Escola Segura</span>
-                    <span className="external-mark" aria-hidden="true">↗</span>
-                  </a>
+                  <>
+                    <a
+                      href="https://siges-escola-segura.onrender.com"
+                      className="enat-admin-link"
+                      target="_blank"
+                      rel="noreferrer"
+                      onClick={closeMobile}
+                    >
+                      <span className="enat-admin-icon" aria-hidden="true">🛡️</span>
+                      <span>SIGES — Escola Segura</span>
+                      <span className="external-mark" aria-hidden="true">↗</span>
+                    </a>
+                    <a
+                      href="https://empresa-segura-enat.onrender.com/empresa-segura"
+                      className="enat-admin-link"
+                      target="_blank"
+                      rel="noreferrer"
+                      onClick={closeMobile}
+                    >
+                      <span className="enat-admin-icon" aria-hidden="true">🏢</span>
+                      <span>Empresa Segura</span>
+                      <span className="external-mark" aria-hidden="true">↗</span>
+                    </a>
+                  </>
                 )}
               </section>
             ))}
