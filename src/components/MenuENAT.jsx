@@ -112,12 +112,6 @@ export function MenuENAT() {
                     <span className="external-mark" aria-hidden="true">↗</span>
                   </a>
                 )}
-                {group.title === "Plataformas ENAT" && profile?.role === "admin" && (
-                  <NavLink to="/empresa-segura-admin" className={link} onClick={closeMobile}>
-                    <span className="enat-admin-icon" aria-hidden="true">🏢</span>
-                    <span>Empresa Segura — Central Administrativa</span>
-                  </NavLink>
-                )}
               </section>
             ))}
 
