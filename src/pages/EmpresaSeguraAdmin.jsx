@@ -11,7 +11,7 @@ const modules = [
     description: "Visão operacional com solicitações empresariais pendentes, pedidos de acesso de funcionários e profissionais e atalhos para executar a próxima ação administrativa. Use este painel para acompanhar o fluxo, não para preencher cadastros novamente.",
     icon: "📊",
     action: "Abrir painel de pendências",
-    href: `${BASE}/#programa`,
+    href: "/caixa-publica",
   },
   {
     group: "ETAPA 1 · ENTRADA DE SOLICITAÇÕES",
@@ -19,7 +19,7 @@ const modules = [
     description: "Fila administrativa dos cadastros enviados pelo formulário público. Consulte responsável, CNPJ, contato, número de colaboradores, setores e áreas de interesse; registre a análise sem pedir que a empresa preencha novamente.",
     icon: "📥",
     action: "Analisar solicitações recebidas",
-    href: `${BASE}/#metodologia`,
+    href: "/caixa-publica",
   },
   {
     group: "ETAPA 1 · ENTRADA DE SOLICITAÇÕES",
@@ -27,7 +27,7 @@ const modules = [
     description: "Consulte as contas e solicitações de acesso enviadas por funcionários e profissionais. Confira a empresa declarada, a função e o status antes de autorizar qualquer acesso.",
     icon: "👥",
     action: "Revisar solicitações de pessoas",
-    href: `${BASE}/#participar`,
+    href: "/caixa-publica",
   },
   {
     group: "ETAPA 2 · FLUXO DE TRABALHO",
@@ -35,7 +35,7 @@ const modules = [
     description: "Abra a caixa de entrada administrativa para consultar cadastros recebidos, registrar a análise e continuar com uma solicitação aprovada. A configuração da organização deve ser aberta a partir do registro aprovado, com os dados já carregados.",
     icon: "🗂️",
     action: "Abrir caixa de entrada administrativa",
-    href: `${BASE}/#programa`,
+    href: "/caixa-publica",
   },
   {
     group: "ETAPA 3 · AUTORIZAÇÕES",
@@ -43,7 +43,7 @@ const modules = [
     description: "Vincule usuários à organização correta, defina gestores e participantes e libere acessos somente depois de confirmar que a empresa está ativa e que o escopo foi autorizado.",
     icon: "🔑",
     action: "Gerenciar gestores e acessos",
-    href: `${BASE}/#participar`,
+    href: "/usuarios",
   },
   {
     group: "ETAPA 3 · AUTORIZAÇÕES",
@@ -51,7 +51,7 @@ const modules = [
     description: "Mantenha o catálogo institucional que será utilizado na configuração das empresas. A existência de um instrumento no catálogo não significa autorização automática para aplicá-lo.",
     icon: "🧩",
     action: "Gerenciar catálogo institucional",
-    href: `${BASE}/#eixos`,
+    href: "/configuracao-portal",
   },
   {
     group: "ETAPA 3 · EQUIPE ENAT",
@@ -59,7 +59,7 @@ const modules = [
     description: "Gerencie profissionais internos, perfis de trabalho e permissões para testes e homologação. Esta área é distinta das solicitações de funcionários das empresas clientes.",
     icon: "🛡️",
     action: "Gerenciar equipe interna",
-    href: `${BASE}/#participar`,
+    href: "/usuarios",
   },
   {
     group: "ETAPA 4 · HOMOLOGAÇÃO",
@@ -67,7 +67,7 @@ const modules = [
     description: "Revise as sessões submetidas, confira as respostas e registre a decisão institucional. Resultados não devem ser publicados antes da revisão.",
     icon: "🧾",
     action: "Revisar testes submetidos",
-    href: `${BASE}/#metodologia`,
+    href: "/dashboard-enat",
   },
   {
     group: "ETAPA 5 · PUBLICAÇÃO CONTROLADA",
@@ -75,7 +75,7 @@ const modules = [
     description: "Publique ou libere resultados somente após a revisão institucional e a confirmação das autorizações aplicáveis à organização.",
     icon: "📊",
     action: "Revisar e liberar resultados",
-    href: `${BASE}/#programa`,
+    href: "/dashboard-enat",
   },
   {
     group: "ETAPA 6 · ACESSO DA ORGANIZAÇÃO",
