@@ -113,7 +113,7 @@ export function MenuENAT() {
                       <span className="external-mark" aria-hidden="true">↗</span>
                     </a>
                     <a
-                      href="https://empresa-segura-enat.onrender.com/empresa-segura"
+                      href="https://empresa-segura-enat-portal.onrender.com"
                       className="enat-admin-link"
                       target="_blank"
                       rel="noreferrer"
