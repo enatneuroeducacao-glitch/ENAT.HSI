@@ -78,6 +78,14 @@ const modules = [
     href: "/dashboard-enat",
   },
   {
+    group: "CONTEÚDO · ADMINISTRAÇÃO",
+    title: "Editor dos portais da empresa e do funcionário",
+    description: "Edite títulos, textos, seções e conteúdos dos dois portais em espaços separados, com editor visual, pré-visualização, rascunho e publicação controlada.",
+    icon: "📝",
+    action: "Abrir editor administrativo",
+    href: "/empresa-segura-editor",
+  },
+  {
     group: "ETAPA 6 · ACESSO DA ORGANIZAÇÃO",
     title: "Portal empresarial",
     description: "Acesse a experiência destinada à empresa depois da ativação e da criação do gestor autorizado. O portal empresarial não é uma área de administração do ENAT.",
@@ -103,7 +111,7 @@ export function EmpresaSeguraAdmin() {
   return <main className="esa-page">
     <header className="esa-header">
       <div><span className="esa-eyebrow">CENTRAL ENAT HSI · ADMINISTRAÇÃO DE PLATAFORMAS</span><h1>Empresa Segura</h1><p>Central administrativa para receber solicitações, analisar cadastros, autorizar acessos e conduzir a homologação. Esta área é exclusiva da administração ENAT.</p></div>
-      <a className="esa-back" href="/dashboard-enat">← Dashboard ENAT</a>
+      <div className="esa-header-actions"><a className="esa-editor-quick" href="/empresa-segura-editor">✎ Abrir editor de páginas</a><a className="esa-back" href="/dashboard-enat">← Dashboard ENAT</a></div>
     </header>
     <section className="esa-notice"><span>🛡️</span><div><strong>Um fluxo administrativo, sem cadastros duplicados</strong><p>O formulário público alimenta a fila de solicitações empresariais; o cadastro de funcionários e profissionais alimenta a fila de pessoas. A partir dessas filas, o ENAT executa as próximas ações. Nenhum card desta central deve encaminhar o administrador ao formulário público para redigitar dados.</p></div></section>
     <div className="esa-section-heading"><div><span>FLUXO OPERACIONAL</span><h2>Da solicitação à liberação</h2></div></div>
@@ -113,7 +121,7 @@ export function EmpresaSeguraAdmin() {
         <h3>{step.title}</h3><p>{step.text}</p>
       </article>)}
     </section>
-    <div className="esa-section-heading"><div><span>FILAS E AÇÕES ADMINISTRATIVAS</span><h2>Gestão da Empresa Segura</h2></div><span className="esa-count">10 áreas de controle</span></div>
+    <div className="esa-section-heading"><div><span>FILAS E AÇÕES ADMINISTRATIVAS</span><h2>Gestão da Empresa Segura</h2></div><span className="esa-count">11 áreas de controle</span></div>
     <section className="esa-grid">
       {modules.map((item) => <article className="esa-card" key={item.title}>
         <div className="esa-card-top"><span className="esa-icon">{item.icon}</span><span className="esa-group">{item.group}</span></div>
