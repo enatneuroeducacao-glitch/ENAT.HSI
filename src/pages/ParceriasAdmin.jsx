@@ -22,7 +22,7 @@ export function ParceriasAdmin(){
   try{
    const r=await supabase.from("cmnt_sponsorship_leads").select("*").order("created_at",{ascending:false}).limit(500);
    if(r.error)throw r.error;
-   const data=r.data||[];setRows(data);
+   const data=r.data||[];setRows(data);\n   const prices=await supabase.from("cmnt_partnership_price_catalog").select("partnership_type,amount");\n   if(!prices.error&&prices.data?.length){setPriceTable(old=>({...old,...Object.fromEntries(prices.data.map(p=>[p.partnership_type,p.amount]))}));}
    const drafts={};data.forEach(x=>{drafts[x.id]={amount:x.proposed_amount??initialValues[x.interest_type]??0,conditions:x.proposal_conditions||"",validUntil:x.proposal_valid_until||"",subject:x.proposal_subject||("Proposta de parceria ENAT — "+(x.interest_type||"Neurotrânsito"))}});
    setProposalDrafts(drafts);
   }catch(e){setError("Não foi possível consultar as solicitações: "+(e?.message||"erro desconhecido"))}
@@ -69,7 +69,7 @@ export function ParceriasAdmin(){
   catch(e){setError(missingColumns(e)?"Execute primeiro o script partnership-proposal-fields.sql no Supabase para habilitar o registro do envio.":"Não foi possível registrar o envio: "+(e?.message||"erro desconhecido"))}
   finally{setBusy("")}
  };
- const savePriceTable=()=>{setPriceBusy(false);setNotice("Tabela de valores editável nesta sessão. Para persistir os valores padrão no banco, é necessária a configuração de uma tabela de preços no Supabase.");};
+ const savePriceTable=async()=>{setPriceBusy(true);setError("");setNotice("");try{const payload=partnershipTypes.map(partnership_type=>({partnership_type,amount:Number(priceTable[partnership_type]||0),updated_at:new Date().toISOString()}));const r=await supabase.from("cmnt_partnership_price_catalog").upsert(payload,{onConflict:"partnership_type"});if(r.error)throw r.error;setNotice("Tabela de valores salva no Supabase.");}catch(e){setError(missingColumns(e)||/relation .* does not exist|schema cache/i.test(e?.message||"")?"Execute o script SQL partnership-proposal-fields.sql no Supabase para criar a tabela de preços.":"Não foi possível salvar os valores: "+(e?.message||"erro desconhecido"));}finally{setPriceBusy(false)}};
  const count=s=>rows.filter(r=>r.status===s).length;
  return <div style={{boxSizing:"border-box",width:"100%",minWidth:0,minHeight:"100%",color:"#eaf6ff",padding:0,fontFamily:"Arial,sans-serif"}}>
   <div style={{width:"100%",maxWidth:1500,margin:"0 auto",padding:"clamp(12px,2vw,28px)",boxSizing:"border-box"}}>
@@ -90,7 +90,7 @@ export function ParceriasAdmin(){
     <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(min(100%,250px),1fr))",gap:12,marginTop:16}}>
      {partnershipTypes.map(type=><label key={type} style={{display:"grid",gap:7,fontSize:13,color:"#b8d1e2"}}>{type}<div style={{display:"flex",alignItems:"center",gap:8}}><span>R$</span><input style={field} type="number" min="0" step="0.01" value={priceTable[type]??0} onChange={e=>setPriceTable(old=>({...old,[type]:e.target.value}))}/></div></label>)}
     </div>
-    <div style={{display:"flex",justifyContent:"flex-end",marginTop:14}}><button style={btn} onClick={savePriceTable}>Aplicar valores nesta sessão</button></div>
+    <div style={{display:"flex",justifyContent:"flex-end",marginTop:14}}><button style={btn} onClick={savePriceTable} disabled={priceBusy}>{priceBusy?"Salvando…":"Salvar tabela de valores"}</button></div>
    </section>
    <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",gap:10,flexWrap:"wrap",marginBottom:12}}><h2 style={{margin:0,fontSize:22}}>Solicitações recebidas</h2><span style={muted}>{rows.length} registro(s)</span></div>
    {loading&&!rows.length?<section style={panel}>Carregando solicitações…</section>:!rows.length?<section style={panel}>Nenhuma solicitação encontrada. Confira a conexão e as políticas de leitura do Supabase.</section>:
