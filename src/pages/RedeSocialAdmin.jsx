@@ -1,5 +1,6 @@
 import React,{useCallback,useEffect,useState}from"react";
 import{supabase}from"../lib/supabaseClient";
+import { ParceriasAdmin } from "./ParceriasAdmin";
 
 const card={background:"#0c1b29",border:"1px solid rgba(99,202,255,.18)",borderRadius:16,padding:20};
 const muted={color:"#8fa8ba",fontSize:13};
@@ -88,9 +89,9 @@ export function RedeSocialAdmin({initialTab="overview"}){
     {metric("COMUNIDADES",data.counts.communities,"Comunidades cadastradas")}{metric("MOVIMENTAÇÕES CIENTÍFICAS",data.counts.activity,"Navegações e ações registradas")}{metric("AVALIAÇÕES HSI-DOTH-P",data.counts.assessments,"Questionários concluídos")}
    </section>
    <nav style={{...card,padding:10,display:"flex",gap:8,flexWrap:"wrap",marginBottom:18}}>
-    {[["overview","Visão geral"],["scientific","Ecossistema científico"],["activity","Atividade científica"],["hsi","HSI-DOTH-P"],["users","Usuários"],["posts","Publicações"],["reports","Denúncias"],["communities","Comunidades"],["courses","Cursos da rede"],["lessons","Aulas do NeuroTrânsito"]].map(([k,l])=><button key={k} onClick={()=>setTab(k)} style={{...btn,background:tab===k?"#12344a":"#0e1d2a",color:tab===k?"#63caff":"#dff5ff"}}>{l}</button>)}
+    {[["overview","Visão geral"],["scientific","Ecossistema científico"],["activity","Atividade científica"],["hsi","HSI-DOTH-P"],["users","Usuários"],["posts","Publicações"],["reports","Denúncias"],["communities","Comunidades"],["courses","Cursos da rede"],["lessons","Aulas do NeuroTrânsito"],["partnerships","Parcerias — Interessados"]].map(([k,l])=><button key={k} onClick={()=>setTab(k)} style={{...btn,background:tab===k?"#12344a":"#0e1d2a",color:tab===k?"#63caff":"#dff5ff"}}>{l}</button>)}
    </nav>
-   {loading&&!data.profiles.length?<section style={card}>Carregando dados da rede social…</section>:<>
+   {tab==="partnerships"?<ParceriasAdmin/>:loading&&!data.profiles.length?<section style={card}>Carregando dados da rede social…</section>:<>
     {tab==="scientific"&&<section style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(280px,1fr))",gap:18}}>
      <article style={card}><div style={muted}>ECOSSISTEMA</div><h2 style={{margin:"6px 0 14px"}}>Núcleos científicos</h2><p style={{...muted,lineHeight:1.7}}>Acompanhe a utilização das áreas de pesquisa, NEXUS 12, HSI-DOTH-P, observatório, evidências, governança e conhecimento.</p><div style={{display:"grid",gap:8,marginTop:12}}>{["Visão geral","Laboratório de pesquisa","Pesquisador","Evidências","NEXUS 12","HSI","Academia ENAT","Observatório","Eventos","Editorial","Comunidades científicas","Instituições","Governança","Base de conhecimento","Integrações","IA científica"].map(x=><button type="button" key={x} onClick={()=>{if(x==="Academia ENAT"){setTab("courses");setEditingCourse(null)}else{setDomainNotice("");setDomainError("");setEditingDomain(null);document.getElementById("scientific-domain-editor")?.scrollIntoView({behavior:"smooth",block:"start"})}}} style={{...btn,textAlign:"left",background:"#091824",padding:12}}><b>{x}</b><span style={{...muted,display:"block",marginTop:4}}>{x==="Academia ENAT"?"Abrir editor de cursos e módulos":"Gerenciar conteúdo das áreas científicas abaixo"}</span></button>)}</div></article>
      <article style={card}><div style={muted}>ÚLTIMA ATIVIDADE</div><h2 style={{margin:"6px 0 14px"}}>Movimentações recentes</h2>{data.activity.slice(0,15).map(a=><div key={a.id} style={{padding:"10px 0",borderBottom:"1px solid rgba(255,255,255,.07)"}}><b>{a.section_key}</b><div style={muted}>{a.action} · {date(a.created_at)}</div></div>)}{!data.activity.length&&<p style={muted}>Nenhuma movimentação registrada ainda.</p>}</article>
