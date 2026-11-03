@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import { ArrowLeft, Building2, UsersRound, History, RefreshCw, Search, Download, FileSpreadsheet, FileText, Eye, X, AlertTriangle, CheckCircle2, Clock3, ShieldCheck } from "lucide-react";
 import { jsPDF } from "jspdf";
 import { supabase } from "../lib/supabaseClient";
+import "./EmpresaSeguraRelatorios.css";
 
 const STATUS_LABELS = { pending: "Pendente", approved: "Aprovado", rejected: "Rejeitado", suspended: "Suspenso", active: "Ativo", completed: "Concluído", reviewing: "Em análise" };
 const formatDate = (value) => {
