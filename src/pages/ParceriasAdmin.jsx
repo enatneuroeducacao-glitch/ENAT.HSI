@@ -31,7 +31,7 @@ export function ParceriasAdmin(){
   finally{setBusy("")}
  };
  const count=s=>rows.filter(r=>r.status===s).length;
- return <main style={{minHeight:"100vh",background:"#07111b",color:"#eaf6ff",padding:"32px 24px",fontFamily:"Arial,sans-serif"}}>
+ return <div style={{boxSizing:"border-box",width:"100%",minWidth:0,minHeight:"100%",background:"transparent",color:"#eaf6ff",padding:0,fontFamily:"Arial,sans-serif"}}>
   <div style={{maxWidth:1240,margin:"0 auto"}}>
    <div style={{...muted,letterSpacing:".12em"}}>PORTAL ADMINISTRATIVO · ENAT HSI</div>
    <h1 style={{margin:"8px 0",fontSize:32}}>INTERESSADOS EM PARCERIAS</h1>
@@ -60,5 +60,5 @@ export function ParceriasAdmin(){
      </article>)}
     </section>}
   </div>
- </main>
+ </div>
 }
