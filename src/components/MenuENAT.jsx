@@ -30,6 +30,7 @@ const groups = [
       ["/depoimentos-admin", "💬", "Depoimentos"],
       ["/email-hsi", "📧", "E-mail HSI-DOTH-PG"],
       ["/rede-social-admin", "🌐", "Rede Social"],
+      ["/parcerias-admin", "🤝", "Parcerias — Interessados"],
     ],
   },
   {
