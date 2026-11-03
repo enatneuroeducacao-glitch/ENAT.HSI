@@ -13,7 +13,7 @@ export function ParceriasAdmin(){
   if(!supabase){setError("Supabase da Central ENAT HSI não está configurado.");setLoading(false);return}
   setLoading(true);setError("");
   try{
-   const r=await supabase.from("cmnt_sponsorship_leads").select("id,name,organization,email,whatsapp,interest,message,consent,status,created_at").order("created_at",{ascending:false}).limit(500);
+   const r=await supabase.from("cmnt_sponsorship_leads").select("id,name,company,email,whatsapp,interest_type,message,consent,status,created_at").order("created_at",{ascending:false}).limit(500);
    if(r.error)throw r.error;
    setRows(r.data||[]);
   }catch(e){setError("Não foi possível consultar as solicitações de parceria: "+(e?.message||"erro desconhecido"))}
@@ -49,11 +49,11 @@ export function ParceriasAdmin(){
     <section style={{display:"grid",gap:14}}>
      {rows.map(row=><article key={row.id} style={panel}>
       <div style={{display:"flex",justifyContent:"space-between",gap:12,alignItems:"flex-start",flexWrap:"wrap"}}>
-       <div><h2 style={{margin:"0 0 6px",fontSize:19}}>{row.name||"Interessado sem nome"}</h2><div style={muted}>{row.organization||"Organização não informada"} · {date(row.created_at)}</div></div>
+       <div><h2 style={{margin:"0 0 6px",fontSize:19}}>{row.name||"Interessado sem nome"}</h2><div style={muted}>{row.company||"Pessoa física"} · {date(row.created_at)}</div></div>
        <span style={{background:"#122b3c",borderRadius:20,padding:"8px 12px",fontWeight:800}}>{statuses.find(s=>s[0]===row.status)?.[1]||row.status||"Sem status"}</span>
       </div>
       <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(min(100%,240px),1fr))",gap:10,marginTop:14,fontSize:14}}>
-       <div><b>E-mail:</b> {row.email||"—"}</div><div><b>WhatsApp:</b> {row.whatsapp||"—"}</div><div><b>Interesse:</b> {row.interest||"—"}</div><div><b>Consentimento:</b> {row.consent?"Confirmado":"Não confirmado"}</div>
+       <div><b>E-mail:</b> {row.email||"—"}</div><div><b>WhatsApp:</b> {row.whatsapp||"—"}</div><div><b>Interesse:</b> {row.interest_type||"—"}</div><div><b>Consentimento:</b> {row.consent?"Confirmado":"Não confirmado"}</div>
       </div>
       {row.message&&<div style={{marginTop:12,padding:12,background:"#091824",borderRadius:10,whiteSpace:"pre-wrap",lineHeight:1.6}}>{row.message}</div>}
       <div style={{display:"flex",alignItems:"center",gap:10,flexWrap:"wrap",marginTop:14}}><label htmlFor={"status-"+row.id} style={muted}>Andamento da proposta</label><select id={"status-"+row.id} value={row.status||"new"} disabled={busy===row.id} onChange={e=>changeStatus(row.id,e.target.value)} style={{padding:"10px 12px",borderRadius:9,border:"1px solid rgba(99,202,255,.25)",background:"#091824",color:"#eaf6ff",fontWeight:700}}>{statuses.map(([value,label])=><option key={value} value={value}>{label}</option>)}</select>{busy===row.id&&<span style={muted}>Salvando…</span>}</div>
