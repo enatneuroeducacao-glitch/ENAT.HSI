@@ -14,3 +14,15 @@ comment on column public.cmnt_sponsorship_leads.proposal_conditions is 'Escopo, 
 comment on column public.cmnt_sponsorship_leads.proposal_valid_until is 'Data de validade da proposta';
 comment on column public.cmnt_sponsorship_leads.proposal_subject is 'Assunto do e-mail de proposta';
 comment on column public.cmnt_sponsorship_leads.proposal_sent_at is 'Data/hora em que o administrador registrou o envio da proposta';
+
+-- Catálogo editável de valores por modalidade de parceria.
+create table if not exists public.cmnt_partnership_price_catalog (
+  partnership_type text primary key,
+  amount numeric(12,2) not null default 0 check (amount >= 0),
+  updated_at timestamptz not null default now()
+);
+
+alter table public.cmnt_partnership_price_catalog enable row level security;
+
+-- O acesso via chave pública depende de políticas já existentes/identidade autenticada.
+-- Não habilitamos leitura ou escrita anônima nesta migração.
