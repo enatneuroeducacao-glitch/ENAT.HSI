@@ -7,8 +7,8 @@ const btn={border:"1px solid rgba(99,202,255,.25)",background:"#0e2535",color:"#
 const field={boxSizing:"border-box",width:"100%",minWidth:0,padding:"10px 12px",borderRadius:9,border:"1px solid rgba(99,202,255,.25)",background:"#071522",color:"#eaf6ff",font:"inherit"};
 const date=v=>v?new Date(v).toLocaleString("pt-BR"):"—";
 const statuses=[["new","Novo"],["reviewing","Em análise"],["contacted","Contatado"],["proposal_sent","Proposta enviada"],["closed","Encerrado"]];
-const partnershipTypes=["Patrocínio de Live","Apoio institucional","Parceria educacional","Parceria científica","Divulgação e mídia","Apoio a evento","Outra modalidade"];
-const initialValues={"Patrocínio de Live":1500,"Apoio institucional":0,"Parceria educacional":0,"Parceria científica":0,"Divulgação e mídia":0,"Apoio a evento":0,"Outra modalidade":0};
+const partnershipTypes=["Patrocínio de Live","Apoio a evento","Divulgação de marca","Outra parceria","Patrocínio de conteúdo","Parceria institucional"];
+const initialValues={"Patrocínio de Live":0,"Apoio a evento":0,"Divulgação de marca":0,"Outra parceria":0,"Patrocínio de conteúdo":0,"Parceria institucional":0};
 const money=v=>Number(v||0).toLocaleString("pt-BR",{style:"currency",currency:"BRL"});
 const missingColumns=e=>/column .* does not exist|schema cache/i.test(e?.message||"");
 
@@ -69,7 +69,7 @@ export function ParceriasAdmin(){
   catch(e){setError(missingColumns(e)?"Execute primeiro o script partnership-proposal-fields.sql no Supabase para habilitar o registro do envio.":"Não foi possível registrar o envio: "+(e?.message||"erro desconhecido"))}
   finally{setBusy("")}
  };
- const savePriceTable=async()=>{setPriceBusy(true);setError("");setNotice("");try{const payload=partnershipTypes.map(partnership_type=>({partnership_type,amount:Number(priceTable[partnership_type]||0),updated_at:new Date().toISOString()}));const r=await supabase.from("cmnt_partnership_price_catalog").upsert(payload,{onConflict:"partnership_type"});if(r.error)throw r.error;setNotice("Tabela de valores salva no Supabase.");}catch(e){setError(missingColumns(e)||/relation .* does not exist|schema cache/i.test(e?.message||"")?"Execute o script SQL partnership-proposal-fields.sql no Supabase para criar a tabela de preços.":"Não foi possível salvar os valores: "+(e?.message||"erro desconhecido"));}finally{setPriceBusy(false)}};
+ const savePriceTable=async()=>{setPriceBusy(true);setError("");setNotice("");try{for(const partnership_type of partnershipTypes){const r=await supabase.from("cmnt_partnership_prices").update({reference_amount:Number(priceTable[partnership_type]||0),active:true,updated_at:new Date().toISOString()}).eq("partnership_type",partnership_type);if(r.error)throw r.error;}setNotice("Valores de referência atualizados na tabela cmnt_partnership_prices.");}catch(e){setError("Não foi possível salvar os valores: "+(e?.message||"verifique as permissões da tabela cmnt_partnership_prices."));}finally{setPriceBusy(false)}};
  const count=s=>rows.filter(r=>r.status===s).length;
  return <div style={{boxSizing:"border-box",width:"100%",minWidth:0,minHeight:"100%",color:"#eaf6ff",padding:0,fontFamily:"Arial,sans-serif"}}>
   <div style={{width:"100%",maxWidth:1500,margin:"0 auto",padding:"clamp(12px,2vw,28px)",boxSizing:"border-box"}}>
