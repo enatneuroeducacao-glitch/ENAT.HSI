@@ -65,7 +65,7 @@ export function EmpresaSeguraAdmin() {
             <p>Centralize a gestão dos portais da empresa e do funcionário em um único ambiente.</p>
           </div>
         </div>
-        <a className="esa-back" href="/dashboard-enat"><ArrowUpRight size={16} /> Dashboard ENAT</a>
+        <div className="esa-topbar-actions"><a className="esa-back" href="/empresa-segura-relatorios"><FileText size={16} /> Relatórios e cadastros</a><a className="esa-back" href="/dashboard-enat"><ArrowUpRight size={16} /> Dashboard ENAT</a></div>
       </header>
 
       <section className="esa-welcome">
