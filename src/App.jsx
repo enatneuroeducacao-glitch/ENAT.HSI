@@ -44,6 +44,7 @@ import { EmailHSIAdmin } from "./pages/EmailHSIAdmin";
 import { RedeSocialAdmin } from "./pages/RedeSocialAdmin";
 import { EmpresaSeguraAdmin } from "./pages/EmpresaSeguraAdmin";
 import { EmpresaSeguraEditor } from "./pages/EmpresaSeguraEditor";
+import { EmpresaSeguraRelatorios } from "./pages/EmpresaSeguraRelatorios";
 
 const isGitHubProjectPages=window.location.hostname.endsWith("github.io")&&window.location.pathname.startsWith("/ENAT.HSI");
 const APP_BASENAME=isGitHubProjectPages?"/ENAT.HSI":"";
@@ -93,6 +94,7 @@ function PrivateArea(){
     <Route path="/depoimentos-admin" element={<DepoimentosInstrutoresENAT/>}/>
     <Route path="/configuracao-portal" element={<ConfiguracaoPortalENAT/>}/>
     <Route path="/empresa-segura-admin" element={<EmpresaSeguraAdmin/>}/>
+    <Route path="/empresa-segura-relatorios" element={<EmpresaSeguraRelatorios/>}/>
     <Route path="/empresa-segura-editor" element={<EmpresaSeguraEditor/>}/>
     <Route path="/usuarios" element={<UsuariosENAT/>}/>
     <Route path="/neurodrive" element={<NeuroDriveAdmin/>}/>
