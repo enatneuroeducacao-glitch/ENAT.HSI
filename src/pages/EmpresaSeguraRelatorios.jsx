@@ -1,11 +1,12 @@
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
+import { useAuth } from "../context/AuthContext";
 import { ArrowLeft, Building2, UsersRound, History, RefreshCw, Search, Download, FileSpreadsheet, FileText, Eye, X, AlertTriangle, CheckCircle2, Clock3, ShieldCheck } from "lucide-react";
 import { jsPDF } from "jspdf";
 import { supabase } from "../lib/supabaseClient";
 import "./EmpresaSeguraRelatorios.css";
 
-const STATUS_LABELS = { pending: "Pendente", approved: "Aprovado", rejected: "Rejeitado", suspended: "Suspenso", active: "Ativo", completed: "Concluído", reviewing: "Em análise" };
+const STATUS_LABELS = { registered: "Registrado", pending: "Pendente", approved: "Aprovado", rejected: "Rejeitado", suspended: "Suspenso", active: "Ativo", completed: "Concluído", reviewing: "Em análise" };
 const formatDate = (value) => {
   if (!value) return "—";
   const date = new Date(value);
@@ -23,6 +24,7 @@ const downloadBlob = (content, type, filename) => {
 const csvCell = (value) => '"' + flatten(value).replace(/"/g, '""') + '"';
 
 export function EmpresaSeguraRelatorios() {
+  const { profile } = useAuth();
   const [companies, setCompanies] = useState([]);
   const [profiles, setProfiles] = useState([]);
   const [memberships, setMemberships] = useState([]);
@@ -167,6 +169,8 @@ export function EmpresaSeguraRelatorios() {
       </section>
     </div>;
   };
+
+  if (profile?.role !== "admin") return <main className="esr-page"><section className="esr-panel" style={{ margin: "70px auto", maxWidth: 600, padding: 28, textAlign: "center" }}><ShieldCheck size={30} /><h1>Acesso restrito</h1><p>Os relatórios Empresa Segura estão disponíveis somente para administradores da Central ENAT HSI.</p><Link className="esr-back" style={{ display: "inline-flex", margin: "12px auto" }} to="/empresa-segura-admin"><ArrowLeft size={16} /> Voltar à administração</Link></section></main>;
 
   return <main className="esr-page">
     <header className="esr-topbar">
