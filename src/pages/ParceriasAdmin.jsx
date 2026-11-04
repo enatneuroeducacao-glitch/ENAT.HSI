@@ -22,7 +22,9 @@ export function ParceriasAdmin(){
   try{
    const r=await supabase.from("cmnt_sponsorship_leads").select("*").order("created_at",{ascending:false}).limit(500);
    if(r.error)throw r.error;
-   const data=r.data||[];setRows(data);\n   const prices=await supabase.from("cmnt_partnership_price_catalog").select("partnership_type,amount");\n   if(!prices.error&&prices.data?.length){setPriceTable(old=>({...old,...Object.fromEntries(prices.data.map(p=>[p.partnership_type,p.amount]))}));}
+   const data=r.data||[];setRows(data);
+   const prices=await supabase.from("cmnt_partnership_prices").select("partnership_type,reference_amount").eq("active",true);
+   if(!prices.error&&prices.data?.length){setPriceTable(old=>({...old,...Object.fromEntries(prices.data.map(p=>[p.partnership_type,p.reference_amount]))}));}
    const drafts={};data.forEach(x=>{drafts[x.id]={amount:x.proposed_amount??initialValues[x.interest_type]??0,conditions:x.proposal_conditions||"",validUntil:x.proposal_valid_until||"",subject:x.proposal_subject||("Proposta de parceria ENAT — "+(x.interest_type||"Neurotrânsito"))}});
    setProposalDrafts(drafts);
   }catch(e){setError("Não foi possível consultar as solicitações: "+(e?.message||"erro desconhecido"))}
