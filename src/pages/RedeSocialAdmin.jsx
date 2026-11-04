@@ -78,20 +78,20 @@ export function RedeSocialAdmin({initialTab="overview"}){
 
  const metric=(title,value,note)=><article style={card}><div style={muted}>{title}</div><strong style={{display:"block",fontSize:32,marginTop:8}}>{fmt(value)}</strong><span style={muted}>{note}</span></article>;
  return <main style={{minHeight:"100vh",background:"#07111b",color:"#eaf6ff",padding:"32px 24px",fontFamily:"Arial,sans-serif"}}>
-  <div style={{maxWidth:1240,margin:"0 auto"}}>
+  <div style={{width:"100%",maxWidth:1560,margin:"0 auto",boxSizing:"border-box"}}>
    <header style={{display:"flex",justifyContent:"space-between",gap:20,alignItems:"flex-start",marginBottom:22,flexWrap:"wrap"}}>
     <div><div style={{...muted,letterSpacing:".12em"}}>PORTAL ADMINISTRATIVO · ENAT HSI</div><h1 style={{margin:"8px 0",fontSize:32}}>REDE SOCIAL — NEUROTRÂNSITO</h1><p style={{...muted,maxWidth:850,fontSize:15,lineHeight:1.6}}>Administração centralizada da rede social. O acesso é feito pela autenticação da Central ENAT HSI; não existe um segundo login administrativo.</p></div>
     <div style={{display:"flex",gap:8,flexWrap:"wrap"}}><a href="https://neurotransito.hsi-doth-pg.com.br" target="_blank" rel="noreferrer" style={{...btn,textDecoration:"none"}}>🌐 Abrir Neurotrânsito</a><button onClick={load} disabled={loading} style={{...btn,opacity:loading?.6:1}}>{loading?"Atualizando…":"↻ Atualizar"}</button></div>
    </header>
    {error&&<div style={{...card,borderColor:"rgba(255,100,100,.35)",color:"#ffb8b8",marginBottom:18}}>Falha na integração: {error}</div>}
-   <section style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(190px,1fr))",gap:14,marginBottom:18}}>
+   <section style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(min(100%,210px),1fr))",gap:16,marginBottom:22}}>
     {metric("USUÁRIOS",data.counts.profiles,"Perfis da rede")}
     {metric("PUBLICAÇÕES",data.counts.posts,"Conteúdos publicados")}
     {metric("DENÚNCIAS",data.counts.reports,"Registros de moderação")}
     {metric("COMUNIDADES",data.counts.communities,"Comunidades cadastradas")}{metric("MOVIMENTAÇÕES CIENTÍFICAS",data.counts.activity,"Navegações e ações registradas")}{metric("AVALIAÇÕES HSI-DOTH-P",data.counts.assessments,"Questionários concluídos")}
    </section>
-   <nav style={{...card,padding:10,display:"flex",gap:8,flexWrap:"wrap",marginBottom:18}}>
-    {[["overview","Visão geral"],["scientific","Ecossistema científico"],["activity","Atividade científica"],["hsi","HSI-DOTH-P"],["users","Usuários"],["posts","Publicações"],["reports","Denúncias"],["communities","Comunidades"],["courses","Cursos da rede"],["lessons","Aulas do NeuroTrânsito"],...(profile?.role==="admin"?[["partnerships","Parcerias — Interessados"]]:[])].map(([k,l])=><button key={k} onClick={()=>setTab(k)} style={{...btn,background:tab===k?"#12344a":"#0e1d2a",color:tab===k?"#63caff":"#dff5ff"}}>{l}</button>)}
+   <nav aria-label="Seções da administração da rede social" style={{...card,padding:12,display:"flex",gap:8,flexWrap:"wrap",alignItems:"center",marginBottom:22,position:"relative"}}>
+    {[["overview","Visão geral"],["scientific","Ecossistema científico"],["activity","Atividade científica"],["hsi","HSI-DOTH-P"],["users","Usuários"],["posts","Publicações"],["reports","Denúncias"],["communities","Comunidades"],["courses","Cursos da rede"],["lessons","Aulas do NeuroTrânsito"],...(profile?.role==="admin"?[["partnerships","Parcerias — Interessados"]]:[])].map(([k,l])=><button key={k} onClick={()=>setTab(k)} aria-current={tab===k?"page":undefined} style={{...btn,whiteSpace:"nowrap",background:tab===k?"#12344a":"#0e1d2a",color:tab===k?"#63caff":"#dff5ff",borderColor:tab===k?"#3d9dc7":"rgba(99,202,255,.18)",boxShadow:tab===k?"inset 0 0 0 1px rgba(99,202,255,.12)":"none"}}>{l}</button>)}
    </nav>
    {tab==="partnerships"&&profile?.role==="admin"?<ParceriasAdmin/>:loading&&!data.profiles.length?<section style={card}>Carregando dados da rede social…</section>:<>
     {tab==="scientific"&&<section style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(280px,1fr))",gap:18}}>
