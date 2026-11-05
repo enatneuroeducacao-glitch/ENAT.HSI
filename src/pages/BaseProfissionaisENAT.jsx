@@ -108,9 +108,17 @@ export function BaseProfissionaisENAT() {
       isSubscribed(row) ? "Sim" : "Não",row.consent ? "Sim" : "Não",formatDate(row.newsletter_consent_at),
       formatDate(row.newsletter_opted_out_at),row.newsletter_opt_out_reason || "",formatDate(row.created_at)
     ]);
-    const stateRows = [["UF","Quantidade"], ...byState.map(([label,count]) => [label,[count,"Number"]])];
-    const professionRows = [["Profissão","Quantidade"], ...byProfession.map(([label,count]) => [label,[count,"Number"]])];
-    const summaryRows = [["Indicador","Quantidade"],["Cadastros",[totals.total,"Number"]],["Autorizados a receber notícias",[totals.subscribed,"Number"]],["Descadastrados",[totals.unsubscribed,"Number"]],["Sem autorização",[totals.noConsent,"Number"]],["Estados com registros",[totals.states,"Number"]]];
+    const exportStates = {};
+    const exportProfessions = {};
+    filtered.forEach(row => {
+      const state = normalize(row.state).toUpperCase() || "Não informado";
+      const profession = normalize(row.profession) || "Não informado";
+      exportStates[state] = (exportStates[state] || 0) + 1;
+      exportProfessions[profession] = (exportProfessions[profession] || 0) + 1;
+    });
+    const stateRows = [["UF","Quantidade"], ...Object.entries(exportStates).sort((a,b) => b[1]-a[1]).map(([label,count]) => [label,[count,"Number"]])];
+    const professionRows = [["Profissão","Quantidade"], ...Object.entries(exportProfessions).sort((a,b) => b[1]-a[1]).map(([label,count]) => [label,[count,"Number"]])];
+    const summaryRows = [["Indicador","Quantidade"],["Cadastros filtrados",[filtered.length,"Number"]],["Autorizados a receber notícias",[filtered.filter(isSubscribed).length,"Number"]],["Descadastrados",[filtered.filter(row => Boolean(row.newsletter_opted_out_at)).length,"Number"]],["Sem autorização",[filtered.filter(row => !row.newsletter_opt_in && !row.newsletter_opted_out_at).length,"Number"]],["Estados com registros",[Object.keys(exportStates).length,"Number"]]];
     const workbook = `<?xml version="1.0" encoding="UTF-8"?><?mso-application progid="Excel.Sheet"?><Workbook xmlns="urn:schemas-microsoft-com:office:spreadsheet" xmlns:ss="urn:schemas-microsoft-com:office:spreadsheet">${excelSheet("Profissionais",[headers,...dataRows])}${excelSheet("Por estado",stateRows)}${excelSheet("Por profissão",professionRows)}${excelSheet("Resumo",summaryRows)}</Workbook>`;
     const blob = new Blob(["\uFEFF", workbook], { type: "application/vnd.ms-excel;charset=utf-8" });
     const url = URL.createObjectURL(blob); const link = document.createElement("a");
