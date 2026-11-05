@@ -38,7 +38,7 @@ Deno.serve(async(req)=>{
    const {data:course,error:courseError}=await db.from("ava_courses").select("id,title,payment_required,price_cents").eq("id",invite.course_id).maybeSingle();
    if(courseError)throw courseError;if(!course)return json({error:"Curso não encontrado."},404);
    if(course.payment_required&&Number(course.price_cents||0)>0&&!invite.payment_waived)return json({error:"Este curso exige confirmação de pagamento. A matrícula ainda não foi liberada; contate o ENAT para concluir o pagamento."},402);
-   await db.from("ava_profiles").upsert({id:user.id,email:user.email,full_name:clean(user.user_metadata?.full_name||user.user_metadata?.name,180),role:"student"},{onConflict:"id"});
+   await db.from("ava_profiles").upsert({id:user.id,email:user.email,full_name:clean(user.user_metadata?.full_name||user.user_metadata?.name,180),role:"student"},{onConflict:"id",ignoreDuplicates:true});
    const {data:existing,error:existingError}=await db.from("ava_enrollments").select("id,status").eq("user_id",user.id).eq("course_id",course.id).maybeSingle();
    if(existingError)throw existingError;
    let enrollment=existing;
