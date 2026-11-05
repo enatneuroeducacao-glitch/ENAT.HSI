@@ -131,6 +131,10 @@ export function MenuENAT() {
             {profile?.role === "admin" && (
               <section className="enat-admin-group">
                 <h2>Administração avançada</h2>
+                <NavLink to="/base-profissionais" className={link} onClick={closeMobile}>
+                  <span className="enat-admin-icon" aria-hidden="true">👥</span>
+                  <span>Base de Profissionais ENAT</span>
+                </NavLink>
                 <NavLink to="/usuarios" className={link} onClick={closeMobile}>
                   <span className="enat-admin-icon" aria-hidden="true">🔐</span>
                   <span>Usuários e permissões</span>
