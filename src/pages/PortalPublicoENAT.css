@@ -60,3 +60,8 @@
 .professional-photo-remove{justify-self:start;border:0;background:transparent;color:#a33b3b;font-size:12px;font-weight:700;padding:0;cursor:pointer}
 .professional-directory-photo{width:58px;height:58px;border-radius:50%;object-fit:cover;border:2px solid #c8e5f8;display:block;margin-bottom:12px}
 @media(max-width:560px){.professional-photo-field{align-items:flex-start}.professional-photo-preview{width:64px;height:64px;flex-basis:64px}}
+
+.public-course-actions{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-top:15px}
+.public-course-access{border:1px solid #c9e0ef;background:#f2f9fd;color:#0874ad;border-radius:8px;padding:9px 12px;font-size:12px;font-weight:900;cursor:pointer}
+.public-course-access span{margin-left:5px}
+.public-course-restriction{display:block;color:#7b8d9d;font-size:10px;line-height:1.5;margin-top:10px}
