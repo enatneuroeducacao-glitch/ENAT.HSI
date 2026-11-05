@@ -1,0 +1,1 @@
+alter table public.ava_enrollment_invites add column if not exists payment_waived boolean not null default false;
