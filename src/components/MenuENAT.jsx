@@ -16,6 +16,7 @@ const groups = [
     title: "Gestão acadêmica",
     items: [
       ["/cursos/admin", "📚", "Banco de Cursos"],
+      ["/academia-admin", "🎓", "Plataforma de Cursos — AVA"],
       ["/cursos-neurotransito", "📝", "Cursos Neurotrânsito"],
       ["/alunos", "👥", "Alunos"],
       ["/docente-enat", "🎓", "Docente ENAT"],
