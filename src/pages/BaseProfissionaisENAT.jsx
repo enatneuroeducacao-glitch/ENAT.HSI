@@ -53,7 +53,8 @@ export function BaseProfissionaisENAT() {
       if (stateFilter !== "all" && normalize(row.state).toUpperCase() !== stateFilter) return false;
       if (professionFilter !== "all" && normalize(row.profession) !== professionFilter) return false;
       if (consentFilter === "subscribed" && !isSubscribed(row)) return false;
-      if (consentFilter === "unsubscribed" && isSubscribed(row)) return false;
+      if (consentFilter === "unsubscribed" && !row.newsletter_opted_out_at) return false;
+      if (consentFilter === "no_consent" && (row.newsletter_opt_in || row.newsletter_opted_out_at)) return false;
       return true;
     });
   }, [rows, search, stateFilter, professionFilter, consentFilter]);
@@ -61,7 +62,8 @@ export function BaseProfissionaisENAT() {
   const totals = useMemo(() => ({
     total: rows.length,
     subscribed: rows.filter(isSubscribed).length,
-    unsubscribed: rows.filter(row => !isSubscribed(row)).length,
+    unsubscribed: rows.filter(row => Boolean(row.newsletter_opted_out_at)).length,
+    noConsent: rows.filter(row => !row.newsletter_opt_in && !row.newsletter_opted_out_at).length,
     states: new Set(rows.map(row => normalize(row.state).toUpperCase()).filter(Boolean)).size,
   }), [rows]);
 
@@ -108,7 +110,7 @@ export function BaseProfissionaisENAT() {
     ]);
     const stateRows = [["UF","Quantidade"], ...byState.map(([label,count]) => [label,[count,"Number"]])];
     const professionRows = [["Profissão","Quantidade"], ...byProfession.map(([label,count]) => [label,[count,"Number"]])];
-    const summaryRows = [["Indicador","Quantidade"],["Cadastros",[totals.total,"Number"]],["Autorizados a receber notícias",[totals.subscribed,"Number"]],["Sem autorização ou descadastrados",[totals.unsubscribed,"Number"]],["Estados com registros",[totals.states,"Number"]]];
+    const summaryRows = [["Indicador","Quantidade"],["Cadastros",[totals.total,"Number"]],["Autorizados a receber notícias",[totals.subscribed,"Number"]],["Descadastrados",[totals.unsubscribed,"Number"]],["Sem autorização",[totals.noConsent,"Number"]],["Estados com registros",[totals.states,"Number"]]];
     const workbook = `<?xml version="1.0" encoding="UTF-8"?><?mso-application progid="Excel.Sheet"?><Workbook xmlns="urn:schemas-microsoft-com:office:spreadsheet" xmlns:ss="urn:schemas-microsoft-com:office:spreadsheet">${excelSheet("Profissionais",[headers,...dataRows])}${excelSheet("Por estado",stateRows)}${excelSheet("Por profissão",professionRows)}${excelSheet("Resumo",summaryRows)}</Workbook>`;
     const blob = new Blob(["\uFEFF", workbook], { type: "application/vnd.ms-excel;charset=utf-8" });
     const url = URL.createObjectURL(blob); const link = document.createElement("a");
@@ -136,7 +138,8 @@ export function BaseProfissionaisENAT() {
           {[
             ["PROFISSIONAIS CADASTRADOS",totals.total,"👥"],
             ["AUTORIZARAM NOTÍCIAS",totals.subscribed,"📨"],
-            ["SEM AUTORIZAÇÃO / DESCADASTRADOS",totals.unsubscribed,"🔕"],
+            ["DESCADASTRADOS",totals.unsubscribed,"🔕"],
+            ["SEM AUTORIZAÇÃO",totals.noConsent,"⏸️"],
             ["ESTADOS REPRESENTADOS",totals.states,"🇧🇷"],
           ].map(([label,value,icon]) => <article key={label} style={panelStyle}><div style={{ color: "#8da4b7", fontSize: 11, fontWeight: 800, letterSpacing: 1 }}>{icon} {label}</div><strong style={{ display: "block", fontSize: 30, marginTop: 10 }}>{loading ? "…" : value}</strong></article>)}
         </section>
@@ -152,7 +155,7 @@ export function BaseProfissionaisENAT() {
             <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Buscar nome, e-mail, cidade…" style={inputStyle}/>
             <select value={stateFilter} onChange={e => setStateFilter(e.target.value)} style={inputStyle}><option value="all">Todos os estados</option>{stateOptions.map(value => <option key={value} value={value}>{value}</option>)}</select>
             <select value={professionFilter} onChange={e => setProfessionFilter(e.target.value)} style={inputStyle}><option value="all">Todas as profissões</option>{professionOptions.map(value => <option key={value} value={value}>{value}</option>)}</select>
-            <select value={consentFilter} onChange={e => setConsentFilter(e.target.value)} style={inputStyle}><option value="all">Todas as autorizações</option><option value="subscribed">Autorizou receber notícias</option><option value="unsubscribed">Sem autorização / descadastrado</option></select>
+            <select value={consentFilter} onChange={e => setConsentFilter(e.target.value)} style={inputStyle}><option value="all">Todas as autorizações</option><option value="subscribed">Autorizou receber notícias</option><option value="unsubscribed">Descadastrados</option><option value="no_consent">Nunca autorizaram</option></select>
           </div>
           <div style={{ overflowX: "auto" }}>
             <table style={{ width: "100%", borderCollapse: "collapse", minWidth: 920, fontSize: 13 }}>
@@ -161,7 +164,7 @@ export function BaseProfissionaisENAT() {
                 <td style={{ padding: 12, borderBottom: "1px solid #1b3448" }}><strong>{row.name}</strong><div style={{ color: "#8fa8ba", marginTop: 4 }}>{row.email || "Sem e-mail"}{row.phone ? ` · ${row.phone}` : ""}</div><div style={{ color: "#70899d", marginTop: 3 }}>{row.institution || ""}</div></td>
                 <td style={{ padding: 12, borderBottom: "1px solid #1b3448" }}>{row.profession}</td>
                 <td style={{ padding: 12, borderBottom: "1px solid #1b3448" }}>{[row.city,normalize(row.state).toUpperCase()].filter(Boolean).join(" / ") || "Não informado"}</td>
-                <td style={{ padding: 12, borderBottom: "1px solid #1b3448" }}><span style={{ color: isSubscribed(row) ? "#8fe0bd" : "#b4c0ca", fontWeight: 800 }}>{isSubscribed(row) ? "Autorizado" : "Não autorizado / descadastrado"}</span>{row.newsletter_opted_out_at && <div style={{ color: "#849bad", marginTop: 4 }}>Descadastrado em {formatDate(row.newsletter_opted_out_at)}</div>}</td>
+                <td style={{ padding: 12, borderBottom: "1px solid #1b3448" }}><span style={{ color: isSubscribed(row) ? "#8fe0bd" : "#b4c0ca", fontWeight: 800 }}>{isSubscribed(row) ? "Autorizado" : row.newsletter_opted_out_at ? "Descadastrado" : "Sem autorização"}</span>{isSubscribed(row) && row.newsletter_consent_at && <div style={{ color: "#849bad", marginTop: 4 }}>Autorizado em {formatDate(row.newsletter_consent_at)}</div>}{row.newsletter_opted_out_at && <div style={{ color: "#849bad", marginTop: 4 }}>Descadastrado em {formatDate(row.newsletter_opted_out_at)}</div>}</td>
                 <td style={{ padding: 12, borderBottom: "1px solid #1b3448", color: "#9db1c1" }}>{formatDate(row.created_at)}</td>
                 <td style={{ padding: 12, borderBottom: "1px solid #1b3448" }}>{isSubscribed(row) ? <button disabled={busyId===row.id} onClick={() => unsubscribe(row)} style={{ ...buttonStyle, borderColor: "#8b5555", color: "#ffc1c1" }}>{busyId===row.id ? "Salvando…" : "Registrar descadastramento"}</button> : <span style={{ color: "#71899b" }}>Sem ação</span>}</td>
               </tr>)}</tbody>
