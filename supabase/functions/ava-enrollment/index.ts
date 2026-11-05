@@ -56,10 +56,11 @@ Deno.serve(async(req)=>{
    if(clean(user.email,180).toLowerCase()!==clean(invite.email,180).toLowerCase())return json({error:"Entre com o mesmo e-mail para o qual o convite foi enviado."},403);
    const {data:course,error:courseError}=await db.from("ava_courses").select("id,title,payment_required,price_cents").eq("id",invite.course_id).maybeSingle();
    if(courseError)throw courseError;if(!course)return json({error:"Curso não encontrado."},404);
-   if(course.payment_required&&Number(course.price_cents||0)>0&&!invite.payment_waived){const checkout=await createCourseCheckout(user,course);if(checkout.error)return json({error:checkout.error,details:checkout.details||null},503);return json({ok:true,payment_required:true,course:{id:course.id,title:course.title},payment:checkout.payment,checkout_url:checkout.checkout_url});}
    await db.from("ava_profiles").upsert({id:user.id,email:user.email,full_name:clean(user.user_metadata?.full_name||user.user_metadata?.name,180),role:"student"},{onConflict:"id",ignoreDuplicates:true});
    const {data:existing,error:existingError}=await db.from("ava_enrollments").select("id,status").eq("user_id",user.id).eq("course_id",course.id).maybeSingle();
    if(existingError)throw existingError;
+   if(existing&&["active","completed"].includes(existing.status)){await db.from("ava_enrollment_invites").update({status:"redeemed",redeemed_by:user.id,redeemed_at:new Date().toISOString(),updated_at:new Date().toISOString()}).eq("id",invite.id).eq("status","pending");return json({ok:true,course:{id:course.id,title:course.title},enrollment:existing});}
+   if(course.payment_required&&Number(course.price_cents||0)>0&&!invite.payment_waived){const checkout=await createCourseCheckout(user,course);if(checkout.error)return json({error:checkout.error,details:checkout.details||null},503);return json({ok:true,payment_required:true,course:{id:course.id,title:course.title},payment:checkout.payment,checkout_url:checkout.checkout_url});}
    let enrollment=existing;
    if(!enrollment){const {data,error}=await db.from("ava_enrollments").insert({user_id:user.id,course_id:course.id,status:"active",access_source:"invite",created_by:user.id}).select("id,status").single();if(error)throw error;enrollment=data;}
    const {data:claimed,error:claimError}=await db.from("ava_enrollment_invites").update({status:"redeemed",redeemed_by:user.id,redeemed_at:new Date().toISOString(),updated_at:new Date().toISOString()}).eq("id",invite.id).eq("status","pending").select("id").maybeSingle();
