@@ -59,8 +59,8 @@ Deno.serve(async(req)=>{
   if(action==="approve_manual_payment"){
    if(!(await isAdmin(user.id)))return json({error:"Acesso administrativo necessário."},403);
    const paymentId=clean(body.payment_id,80);
-   const {data:payment,error}=await db.from("ava_payments").select("id,user_id,course_id,status").eq("id",paymentId).maybeSingle();
-   if(error)throw error;if(!payment)return json({error:"Pagamento não encontrado."},404);if(payment.status!=="pending")return json({error:"Este pagamento não está pendente."},409);
+   const {data:payment,error}=await db.from("ava_payments").select("id,user_id,course_id,status,payment_method").eq("id",paymentId).maybeSingle();
+   if(error)throw error;if(!payment)return json({error:"Pagamento não encontrado."},404);if(payment.status!=="pending")return json({error:"Este pagamento não está pendente."},409);if(payment.payment_method!=="manual")return json({error:"Este pagamento não é manual. A confirmação deve vir do webhook autenticado do provedor."},409);
    const {data:enrollment,error:enrollmentError}=await db.from("ava_enrollments").upsert({user_id:payment.user_id,course_id:payment.course_id,status:"active",access_source:"payment",created_by:user.id},{onConflict:"user_id,course_id"}).select("id,status").single();
    if(enrollmentError)throw enrollmentError;
    const {error:updateError}=await db.from("ava_payments").update({status:"approved",paid_at:new Date().toISOString(),enrollment_id:enrollment.id,updated_at:new Date().toISOString()}).eq("id",payment.id);
