@@ -16,3 +16,14 @@
 .professional-form{padding:28px;background:#fff;border:1px solid #dfe7ef;border-radius:18px;box-shadow:0 16px 45px rgba(20,45,70,.08);min-width:0}.professional-form-heading h2{font-size:28px;color:#10253a;margin:8px 0}.professional-form-heading p{color:#687b8f;line-height:1.6;margin:0}.professional-fields{display:grid;grid-template-columns:1fr 1fr;gap:15px;margin-top:24px}.professional-fields .field input,.professional-fields .field select{width:100%;box-sizing:border-box;min-height:45px}.professional-consents{display:grid;gap:13px;margin:22px 0}.professional-consents label{display:flex;align-items:flex-start;gap:11px;padding:14px;border:1px solid #e2eaf0;border-radius:12px;background:#f9fbfc;cursor:pointer}.professional-consents input{margin-top:3px;accent-color:#087a49;flex:0 0 auto;width:17px;height:17px}.professional-consents span{display:grid;gap:5px}.professional-consents strong{font-size:13px;color:#263c50}.professional-consents small{font-size:12px;line-height:1.55;color:#718195}.professional-submit{width:100%;min-height:49px;font-weight:900}.professional-privacy{font-size:11px;color:#8190a0;text-align:center;margin:12px 0 0}.professional-success{background:#fff;border:1px solid #d8e9df;border-radius:16px;padding:32px;text-align:center;box-shadow:0 12px 35px rgba(20,45,70,.06)}.professional-success-icon{width:52px;height:52px;border-radius:50%;display:grid;place-items:center;margin:0 auto 14px;background:#e7f7ee;color:#087a49;font-size:28px;font-weight:900}.professional-success h3{font-size:24px;color:#12334a;margin:0 0 10px}.professional-success p{color:#617488;line-height:1.65}.professional-section .professional-form .field:nth-last-child(1){grid-column:auto}
 @media(max-width:900px){.professional-section{grid-template-columns:1fr;gap:18px;padding-top:24px}.professional-intro{padding:10px 0}.professional-form{padding:22px}}
 @media(max-width:560px){.professional-fields,.professional-benefits{grid-template-columns:1fr}.professional-form{padding:18px}.professional-form-heading h2{font-size:24px}}
+
+/* Diretório público de profissionais que autorizaram a exibição */
+.professional-directory{padding-top:42px;padding-bottom:18px}
+.professional-directory .section-head{align-items:end;margin-bottom:22px}
+.professional-directory-card{position:relative;min-height:210px}
+.professional-directory-card h3{margin:12px 0 8px!important;color:#10253a}
+.professional-directory-card p{margin-bottom:0}
+.professional-directory-avatar{width:48px;height:48px;border-radius:50%;display:grid;place-items:center;background:#e5f3fc;color:#12669a;font-weight:900;font-size:15px;letter-spacing:.04em;border:1px solid #c6e2f4}
+.professional-directory-empty{max-width:100%;padding:28px;text-align:left}
+.professional-directory-empty h3{margin-top:0}
+@media(max-width:900px){.professional-directory{padding-top:28px}.professional-directory .section-head{display:block}}
