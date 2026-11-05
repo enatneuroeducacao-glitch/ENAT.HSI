@@ -26,7 +26,8 @@ export function AcademiaENAT(){
   const ids=(enrollmentData||[]).map(x=>x.course_id);
   const {data:courseData,error:cError}=ids.length?await supabase.from("ava_courses").select("id,title,slug,description,workload_hours,cover_url,status,metadata").in("id",ids):{data:[],error:null};
   if(cError)throw cError;
-  setEnrollments((enrollmentData||[]).map(en=>({...en,course:(courseData||[]).find(c=>c.id===en.course_id)||null})).filter(en=>en.course));
+  const mappedEnrollments=(enrollmentData||[]).map(en=>({...en,course:(courseData||[]).find(c=>c.id===en.course_id)||null}));
+   setEnrollments(mappedEnrollments.filter(en=>en.course));
  };
 
  const redeemInvite=useCallback(async()=>{
