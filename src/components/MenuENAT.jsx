@@ -17,6 +17,7 @@ const groups = [
     items: [
       ["/cursos/admin", "📚", "Banco de Cursos"],
       ["/academia-admin", "🎓", "Plataforma de Cursos — AVA"],
+      ["/academia-conteudo", "🧑‍🏫", "Conteúdo e Aulas"],
       ["/cursos-neurotransito", "📝", "Cursos Neurotrânsito"],
       ["/alunos", "👥", "Alunos"],
       ["/docente-enat", "🎓", "Docente ENAT"],
