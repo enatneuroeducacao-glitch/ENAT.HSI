@@ -65,3 +65,8 @@
 .public-course-access{border:1px solid #c9e0ef;background:#f2f9fd;color:#0874ad;border-radius:8px;padding:9px 12px;font-size:12px;font-weight:900;cursor:pointer}
 .public-course-access span{margin-left:5px}
 .public-course-restriction{display:block;color:#7b8d9d;font-size:10px;line-height:1.5;margin-top:10px}
+
+
+/* Preço destacado no catálogo público de cursos */
+.public-course-price{margin-top:12px;font-size:25px;font-weight:900;letter-spacing:-.03em;color:#0b6d9f}
+.public-course-actions{display:flex;gap:12px;flex-wrap:wrap;align-items:center}
