@@ -17,14 +17,14 @@ async function createCourseCheckout(user:any,course:any){
  if(!course.price_cents||Number(course.price_cents)<=0)return {error:"O preço deste curso ainda não foi configurado."};
  const {data:existing}=await db.from("ava_payments").select("id,status,checkout_url,amount_cents,currency").eq("user_id",user.id).eq("course_id",course.id).eq("status","pending").not("checkout_url","is",null).order("created_at",{ascending:false}).limit(1).maybeSingle();
  if(existing?.checkout_url)return {payment:existing,checkout_url:existing.checkout_url};
- const {data:payment,error:insertError}=await db.from("ava_payments").insert({user_id:user.id,course_id:course.id,payment_method:"checkout_pro",status:"pending",amount_cents:course.price_cents,currency:course.currency||"BRL",provider:"mercado_pago"}).select("id,status,amount_cents,currency").single();
+ const paymentId=crypto.randomUUID();const externalReference=`ava:${paymentId}:${user.id}:${course.id}`;
+ const {data:payment,error:insertError}=await db.from("ava_payments").insert({id:paymentId,user_id:user.id,course_id:course.id,payment_method:"checkout_pro",status:"pending",amount_cents:course.price_cents,currency:course.currency||"BRL",provider:"mercado_pago",external_reference:externalReference}).select("id,status,amount_cents,currency,external_reference").single();
  if(insertError)throw insertError;
- const externalReference=`ava:${payment.id}:${user.id}:${course.id}`;
  const preference={items:[{id:course.id,title:course.title,description:clean(course.description,250),quantity:1,currency_id:course.currency||"BRL",unit_price:Number(course.price_cents)/100}],payer:{email:user.email},external_reference:externalReference,back_urls:{success:`${base}/academia?payment=success`,pending:`${base}/academia?payment=pending`,failure:`${base}/academia?payment=failure`},auto_return:"approved",notification_url:webhook,metadata:{ava_payment_id:payment.id,course_id:course.id,user_id:user.id},statement_descriptor:"ENAT"};
  const response=await fetch("https://api.mercadopago.com/checkout/preferences",{method:"POST",headers:{Authorization:`Bearer ${token}`,"Content-Type":"application/json"},body:JSON.stringify(preference)});
  const result=await response.json();
  if(!response.ok||!result.init_point){await db.from("ava_payments").update({status:"rejected",metadata:{checkout_error:result},updated_at:new Date().toISOString()}).eq("id",payment.id);return {error:"Não foi possível criar o checkout do Mercado Pago.",details:result};}
- const {error:updateError}=await db.from("ava_payments").update({external_reference:externalReference,checkout_url:result.init_point,metadata:{preference_id:String(result.id||""),sandbox_init_point:result.sandbox_init_point||null},updated_at:new Date().toISOString()}).eq("id",payment.id);
+ const {error:updateError}=await db.from("ava_payments").update({checkout_url:result.init_point,metadata:{preference_id:String(result.id||""),sandbox_init_point:result.sandbox_init_point||null},updated_at:new Date().toISOString()}).eq("id",payment.id);
  if(updateError)throw updateError;
  return {payment:{...payment,external_reference:externalReference,checkout_url:result.init_point},checkout_url:result.init_point};
 }
