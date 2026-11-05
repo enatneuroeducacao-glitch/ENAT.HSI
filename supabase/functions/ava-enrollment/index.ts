@@ -11,7 +11,7 @@ async function currentUser(req:Request){const bearer=(req.headers.get("Authoriza
 async function isAdmin(userId:string){const {data}=await db.from("admin_profiles").select("id").eq("id",userId).eq("active",true).eq("role","admin").maybeSingle();return Boolean(data);}
 async function createCourseCheckout(user:any,course:any){
  const token=Deno.env.get("MERCADOPAGO_ACCESS_TOKEN");
- const base=Deno.env.get("PUBLIC_APP_URL")||"https://www.hsi-doth-pg.com.br";
+ const base=new URL(Deno.env.get("PUBLIC_APP_URL")||"https://www.hsi-doth-pg.com.br").origin;
  const webhook=Deno.env.get("MERCADOPAGO_WEBHOOK_URL")||`${Deno.env.get("SUPABASE_URL")}/functions/v1/mercadopago-webhook`;
  if(!token)return {error:"Mercado Pago ainda não está configurado no servidor."};
  if(!course.price_cents||Number(course.price_cents)<=0)return {error:"O preço deste curso ainda não foi configurado."};
