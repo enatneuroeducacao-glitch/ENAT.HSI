@@ -1,0 +1,2 @@
+alter table public.ava_payments drop constraint if exists ava_payments_payment_method_check;
+alter table public.ava_payments add constraint ava_payments_payment_method_check check (payment_method in ('pix','credit_card','boleto','manual','checkout_pro'));
