@@ -61,6 +61,7 @@ function PrivateArea(){
  const location=useLocation();
  if(loading)return <main style={{minHeight:"100vh",display:"grid",placeItems:"center",background:"#07111b",color:"#63caff",fontFamily:"Arial"}}>Validando autorização…</main>;
  if(!session||!profile)return <Navigate to="/login" replace state={{from:location.pathname}}/>;
+ if(profile.role!=="admin")return <Navigate to="/academia" replace/>;
  return <>
   <MenuENAT/>
   <div className="enat-admin-content">
