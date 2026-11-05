@@ -27,3 +27,20 @@
 .professional-directory-empty{max-width:100%;padding:28px;text-align:left}
 .professional-directory-empty h3{margin-top:0}
 @media(max-width:900px){.professional-directory{padding-top:28px}.professional-directory .section-head{display:block}}
+
+/* Layout em duas colunas: cadastro e diretório público */
+.professional-section{grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:28px;align-items:start;padding-top:36px;padding-bottom:60px}
+.professional-section>.professional-form{grid-column:1;grid-row:1;width:100%;padding:26px}
+.professional-section>.professional-directory{grid-column:2;grid-row:1;width:100%;max-width:none;margin:0;padding:0}
+.professional-directory-heading{margin:0 0 20px}
+.professional-directory-heading h2{font-size:clamp(25px,2.5vw,32px);line-height:1.15;color:#10253a;margin:4px 0 12px}
+.professional-directory-heading p{font-size:15px;line-height:1.65;color:#66788b;margin:0}
+.professional-directory-list{grid-template-columns:1fr;gap:12px}
+.professional-directory-card{min-height:0;padding:18px!important}
+.professional-directory-empty{padding:28px!important;text-align:left}
+.professional-directory-empty h3{margin-top:0}
+@media(max-width:900px){
+ .professional-section{grid-template-columns:minmax(0,1fr);gap:26px;padding-top:24px}
+ .professional-section>.professional-form,.professional-section>.professional-directory{grid-column:1;grid-row:auto}
+ .professional-section>.professional-directory{padding:0 2px}
+}
