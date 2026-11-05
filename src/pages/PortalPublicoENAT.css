@@ -44,3 +44,7 @@
  .professional-section>.professional-form,.professional-section>.professional-directory{grid-column:1;grid-row:auto}
  .professional-section>.professional-directory{padding:0 2px}
 }
+
+.faculty-card{border-top:3px solid #7ec3f4!important}
+.faculty-card p{font-size:13px;line-height:1.6;margin-top:10px}
+.community-directory-heading{margin-top:30px;padding-top:24px;border-top:1px solid #dfe8ef}
