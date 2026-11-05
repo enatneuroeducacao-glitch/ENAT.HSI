@@ -28,7 +28,7 @@ export function AcademiaENAT(){
   if(cError)throw cError;
   const mappedEnrollments=(enrollmentData||[]).map(en=>({...en,course:(courseData||[]).find(c=>c.id===en.course_id)||null}));
    setEnrollments(mappedEnrollments.filter(en=>en.course));
- };
+ },[]);
 
  const redeemInvite=useCallback(async()=>{
   if(!supabase||!inviteToken)return;
