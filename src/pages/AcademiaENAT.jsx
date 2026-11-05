@@ -9,7 +9,7 @@ const date=value=>value?new Date(value).toLocaleDateString("pt-BR"):"—";
 export function AcademiaENAT(){
  const [session,setSession]=useState(null),[profile,setProfile]=useState(null),[enrollments,setEnrollments]=useState([]),[selected,setSelected]=useState(null),[modules,setModules]=useState([]),[lessons,setLessons]=useState([]),[progress,setProgress]=useState([]);
  const [mode,setMode]=useState(getToken()?"register":"login"),[name,setName]=useState(""),[email,setEmail]=useState(""),[password,setPassword]=useState(""),[busy,setBusy]=useState(false),[loading,setLoading]=useState(true),[error,setError]=useState(""),[notice,setNotice]=useState("");
- const [activeLesson,setActiveLesson]=useState(null),[showPassword,setShowPassword]=useState(false),[paymentUrl,setPaymentUrl]=useState(""),[pendingCourseId,setPendingCourseId]=useState(""),[paymentResult,setPaymentResult]=useState(new URLSearchParams(window.location.search).get("payment")||"");
+ const [activeLesson,setActiveLesson]=useState(null),[showPassword,setShowPassword]=useState(false),[paymentUrl,setPaymentUrl]=useState(""),[pendingCourseId,setPendingCourseId]=useState(new URLSearchParams(window.location.search).get("course_id")||""),[paymentResult,setPaymentResult]=useState(new URLSearchParams(window.location.search).get("payment")||"");
  const inviteToken=getToken();
  const hasClient=!!supabase;
 
