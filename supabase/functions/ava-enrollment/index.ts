@@ -9,6 +9,25 @@ const hash=async(value:string)=>{const bytes=new TextEncoder().encode(value);con
 const token=()=>Array.from(crypto.getRandomValues(new Uint8Array(32))).map(x=>x.toString(16).padStart(2,"0")).join("");
 async function currentUser(req:Request){const bearer=(req.headers.get("Authorization")||"").replace(/^Bearer\s+/i,"");if(!bearer)return null;const {data,error}=await db.auth.getUser(bearer);if(error||!data.user)return null;return data.user;}
 async function isAdmin(userId:string){const {data}=await db.from("admin_profiles").select("id").eq("id",userId).eq("active",true).eq("role","admin").maybeSingle();return Boolean(data);}
+async function createCourseCheckout(user:any,course:any){
+ const token=Deno.env.get("MERCADOPAGO_ACCESS_TOKEN");
+ const base=Deno.env.get("PUBLIC_APP_URL")||"https://www.hsi-doth-pg.com.br";
+ const webhook=Deno.env.get("MERCADOPAGO_WEBHOOK_URL")||`${Deno.env.get("SUPABASE_URL")}/functions/v1/mercadopago-webhook`;
+ if(!token)return {error:"Mercado Pago ainda não está configurado no servidor."};
+ if(!course.price_cents||Number(course.price_cents)<=0)return {error:"O preço deste curso ainda não foi configurado."};
+ const {data:existing}=await db.from("ava_payments").select("id,status,checkout_url,amount_cents,currency").eq("user_id",user.id).eq("course_id",course.id).eq("status","pending").not("checkout_url","is",null).order("created_at",{ascending:false}).limit(1).maybeSingle();
+ if(existing?.checkout_url)return {payment:existing,checkout_url:existing.checkout_url};
+ const {data:payment,error:insertError}=await db.from("ava_payments").insert({user_id:user.id,course_id:course.id,payment_method:"checkout_pro",status:"pending",amount_cents:course.price_cents,currency:course.currency||"BRL",provider:"mercado_pago"}).select("id,status,amount_cents,currency").single();
+ if(insertError)throw insertError;
+ const externalReference=`ava:${payment.id}:${user.id}:${course.id}`;
+ const preference={items:[{id:course.id,title:course.title,description:clean(course.description,250),quantity:1,currency_id:course.currency||"BRL",unit_price:Number(course.price_cents)/100}],payer:{email:user.email},external_reference:externalReference,back_urls:{success:`${base}/academia?payment=success`,pending:`${base}/academia?payment=pending`,failure:`${base}/academia?payment=failure`},auto_return:"approved",notification_url:webhook,metadata:{ava_payment_id:payment.id,course_id:course.id,user_id:user.id},statement_descriptor:"ENAT"};
+ const response=await fetch("https://api.mercadopago.com/checkout/preferences",{method:"POST",headers:{Authorization:`Bearer ${token}`,"Content-Type":"application/json"},body:JSON.stringify(preference)});
+ const result=await response.json();
+ if(!response.ok||!result.init_point){await db.from("ava_payments").update({status:"rejected",metadata:{checkout_error:result},updated_at:new Date().toISOString()}).eq("id",payment.id);return {error:"Não foi possível criar o checkout do Mercado Pago.",details:result};}
+ const {error:updateError}=await db.from("ava_payments").update({external_reference:externalReference,checkout_url:result.init_point,metadata:{preference_id:String(result.id||""),sandbox_init_point:result.sandbox_init_point||null},updated_at:new Date().toISOString()}).eq("id",payment.id);
+ if(updateError)throw updateError;
+ return {payment:{...payment,external_reference:externalReference,checkout_url:result.init_point},checkout_url:result.init_point};
+}
 Deno.serve(async(req)=>{
  if(req.method==="OPTIONS")return new Response("ok",{headers:cors});
  if(req.method!=="POST")return json({error:"Método não permitido."},405);
@@ -37,7 +56,7 @@ Deno.serve(async(req)=>{
    if(clean(user.email,180).toLowerCase()!==clean(invite.email,180).toLowerCase())return json({error:"Entre com o mesmo e-mail para o qual o convite foi enviado."},403);
    const {data:course,error:courseError}=await db.from("ava_courses").select("id,title,payment_required,price_cents").eq("id",invite.course_id).maybeSingle();
    if(courseError)throw courseError;if(!course)return json({error:"Curso não encontrado."},404);
-   if(course.payment_required&&Number(course.price_cents||0)>0&&!invite.payment_waived)return json({error:"Este curso exige confirmação de pagamento. A matrícula ainda não foi liberada; contate o ENAT para concluir o pagamento."},402);
+   if(course.payment_required&&Number(course.price_cents||0)>0&&!invite.payment_waived){const checkout=await createCourseCheckout(user,course);if(checkout.error)return json({error:checkout.error,details:checkout.details||null},503);return json({ok:true,payment_required:true,course:{id:course.id,title:course.title},payment:checkout.payment,checkout_url:checkout.checkout_url});}
    await db.from("ava_profiles").upsert({id:user.id,email:user.email,full_name:clean(user.user_metadata?.full_name||user.user_metadata?.name,180),role:"student"},{onConflict:"id",ignoreDuplicates:true});
    const {data:existing,error:existingError}=await db.from("ava_enrollments").select("id,status").eq("user_id",user.id).eq("course_id",course.id).maybeSingle();
    if(existingError)throw existingError;
@@ -48,13 +67,13 @@ Deno.serve(async(req)=>{
    return json({ok:true,course:{id:course.id,title:course.title},enrollment});
   }
   if(action==="create_payment_request"){
-   const courseId=clean(body.course_id,80),method=clean(body.payment_method,30);
-   if(!["pix","credit_card","boleto","manual"].includes(method))return json({error:"Forma de pagamento inválida."},400);
-   const {data:course,error}=await db.from("ava_courses").select("id,title,payment_required,price_cents,currency").eq("id",courseId).eq("status","published").maybeSingle();
+   const courseId=clean(body.course_id,80);
+   const {data:course,error}=await db.from("ava_courses").select("id,title,description,payment_required,price_cents,currency").eq("id",courseId).eq("status","published").maybeSingle();
    if(error)throw error;if(!course||!course.payment_required||!Number(course.price_cents||0))return json({error:"O preço e a cobrança deste curso ainda não foram configurados pelo ENAT."},409);
-   const {data:payment,error:paymentError}=await db.from("ava_payments").insert({user_id:user.id,course_id:course.id,payment_method:method,status:"pending",amount_cents:course.price_cents,currency:course.currency,provider:method==="manual"?"manual":"mercado_pago"}).select("id,status,amount_cents,currency,payment_method").single();
-   if(paymentError)throw paymentError;
-   return json({ok:true,payment,notice:"Pedido de pagamento registrado. A liberação do curso ocorrerá somente após confirmação do pagamento pelo provedor ou pela equipe financeira."});
+   const {data:invite,error:inviteError}=await db.from("ava_enrollment_invites").select("id").eq("course_id",course.id).eq("email",clean(user.email,180).toLowerCase()).eq("status","pending").gt("expires_at",new Date().toISOString()).maybeSingle();
+   if(inviteError)throw inviteError;if(!invite)return json({error:"Não há convite pendente para este curso e e-mail."},403);
+   const checkout=await createCourseCheckout(user,course);if(checkout.error)return json({error:checkout.error,details:checkout.details||null},503);
+   return json({ok:true,payment:checkout.payment,checkout_url:checkout.checkout_url});
   }
   if(action==="approve_manual_payment"){
    if(!(await isAdmin(user.id)))return json({error:"Acesso administrativo necessário."},403);
