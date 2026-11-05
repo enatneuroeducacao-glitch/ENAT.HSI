@@ -15,7 +15,7 @@ async function createCourseCheckout(user:any,course:any){
  const webhook=Deno.env.get("MERCADOPAGO_WEBHOOK_URL")||`${Deno.env.get("SUPABASE_URL")}/functions/v1/mercadopago-webhook`;
  if(!token)return {error:"Mercado Pago ainda não está configurado no servidor."};
  if(!course.price_cents||Number(course.price_cents)<=0)return {error:"O preço deste curso ainda não foi configurado."};
- const {data:existing}=await db.from("ava_payments").select("id,status,checkout_url,amount_cents,currency").eq("user_id",user.id).eq("course_id",course.id).eq("status","pending").not("checkout_url","is",null).order("created_at",{ascending:false}).limit(1).maybeSingle();
+ const {data:existing}=await db.from("ava_payments").select("id,status,checkout_url,amount_cents,currency").eq("user_id",user.id).eq("course_id",course.id).in("status",["pending","under_review"]).not("checkout_url","is",null).order("created_at",{ascending:false}).limit(1).maybeSingle();
  if(existing?.checkout_url)return {payment:existing,checkout_url:existing.checkout_url};
  const paymentId=crypto.randomUUID();const externalReference=`ava:${paymentId}:${user.id}:${course.id}`;
  const {data:payment,error:insertError}=await db.from("ava_payments").insert({id:paymentId,user_id:user.id,course_id:course.id,payment_method:"checkout_pro",status:"pending",amount_cents:course.price_cents,currency:course.currency||"BRL",provider:"mercado_pago",external_reference:externalReference}).select("id,status,amount_cents,currency,external_reference").single();
