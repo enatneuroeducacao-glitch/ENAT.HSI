@@ -116,7 +116,7 @@ export function BaseProfissionaisENAT() {
     document.body.appendChild(link); link.click(); link.remove(); URL.revokeObjectURL(url);
   };
 
-  if (profile?.role !== "admin") return <main style={pageStyle}><div style={{ maxWidth: 900, margin: "auto", ...panelStyle }}><h1>Acesso restrito</h1><p>Esta base contém dados pessoais e está disponível somente para administradores autorizados da Central ENAT.</p></div></main>;
+  if (!["admin", "operador"].includes(profile?.role)) return <main style={pageStyle}><div style={{ maxWidth: 900, margin: "auto", ...panelStyle }}><h1>Acesso restrito</h1><p>Esta base contém dados pessoais e está disponível somente para administradores e operadores autorizados da Central ENAT.</p></div></main>;
 
   const maxState = Math.max(1, ...byState.map(item => item[1]));
   const maxProfession = Math.max(1, ...byProfession.map(item => item[1]));
