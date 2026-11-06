@@ -108,3 +108,5 @@
 .professor-entry-button:hover{background:#10364d;transform:translateY(-2px)}
 .professor-entry-button:focus-visible{outline:3px solid #77d3d0;outline-offset:3px}
 @media(max-width:700px){.professor-entry-button{left:14px;bottom:14px;padding:11px 13px;font-size:12px}}
+
+.faculty-rail .faculty-photo{display:block;width:48px;height:48px;border-radius:50%;object-fit:cover;border:2px solid #d7edf9;margin-bottom:7px}
