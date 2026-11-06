@@ -70,3 +70,8 @@
 /* Preço destacado no catálogo público de cursos */
 .public-course-price{margin-top:12px;font-size:25px;font-weight:900;letter-spacing:-.03em;color:#0b6d9f}
 .public-course-actions{display:flex;gap:12px;flex-wrap:wrap;align-items:center}
+
+/* Diretório docente integrado à seção Cursos */
+.faculty-in-courses{margin-top:58px;padding-top:34px;border-top:1px solid #dce7ef}
+.faculty-in-courses .professional-directory-heading{margin-bottom:22px}
+.faculty-in-courses .professional-directory-list{margin-top:0}
