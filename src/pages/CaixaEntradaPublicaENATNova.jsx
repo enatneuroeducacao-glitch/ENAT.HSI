@@ -146,6 +146,21 @@ export function CaixaEntradaPublicaENATNova() {
     setBusy(false);
   };
 
+  const reviewProfessionalProfile = async (row, decision) => {
+    const reason = decision === "reject" ? (window.prompt("Informe o motivo da rejeição:") || "") : "";
+    if (decision === "reject" && !reason.trim()) return;
+    if (decision === "approve" && !window.confirm("Aprovar e publicar este currículo no perfil profissional público?")) return;
+    setBusy(true); setMsg("");
+    const { data, error } = await supabase.functions.invoke("enat-public-inbox", { body: { action: "professional_profile_review", request_id: row.id, decision, reason } });
+    if (error || data?.error) setMsg(data?.error || error?.message || "Não foi possível analisar o currículo.");
+    else {
+      setRows(old => old.map(item => item.id === row.id ? { ...item, ...data.submission } : item));
+      setSelected(old => old?.id === row.id ? { ...old, ...data.submission } : old);
+      setMsg(decision === "approve" ? "Currículo aprovado e publicado no perfil profissional." : "Currículo rejeitado. A justificativa foi registrada.");
+    }
+    setBusy(false);
+  };
+
   const deleteMessage = async (row) => {
     if (!window.confirm(`Excluir definitivamente a mensagem de ${row.name || row.email || "este contato"}?`)) return;
     setBusy(true);
@@ -236,7 +251,7 @@ export function CaixaEntradaPublicaENATNova() {
               <section><h3>📎 Documentos anexados</h3><div style={{ display: "grid", gap: 8 }}>{selected.attachments.map((a, i) => <div key={a.path || i} style={{ padding: 10, border: "1px solid #203b52", borderRadius: 7 }}>📄 {a.name || `Documento ${i + 1}`}</div>)}</div></section>
             )}
 
-            <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginTop: 24, paddingTop: 18, borderTop: "1px solid #203b52" }}>
+            <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginTop: 24, paddingTop: 18, borderTop: "1px solid #203b52" }}>{selected.kind === "professional_profile_update" && (selected.status === "new" || selected.status === "review") && <><button disabled={busy} onClick={() => reviewProfessionalProfile(selected, "approve")} style={primaryButton}>✓ Aprovar e publicar currículo</button><button disabled={busy} onClick={() => reviewProfessionalProfile(selected, "reject")} style={{ ...buttonStyle, borderColor: "#754848", background: "#24171b", color: "#ffb4b4" }}>Rejeitar com justificativa</button></>}
               <button disabled={busy || !selected.email} onClick={() => setCompose("reply")} style={primaryButton}>↩ Responder</button>
               <button disabled={busy} onClick={() => setCompose("forward")} style={buttonStyle}>↗ Encaminhar</button>
               <button disabled={busy} onClick={() => updateStatus(selected.id, "archived")} style={buttonStyle}>🗄 Arquivar</button>
