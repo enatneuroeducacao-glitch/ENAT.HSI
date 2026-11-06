@@ -110,3 +110,12 @@
 @media(max-width:700px){.professor-entry-button{left:14px;bottom:14px;padding:11px 13px;font-size:12px}}
 
 .faculty-rail .faculty-photo{display:block;width:48px;height:48px;border-radius:50%;object-fit:cover;border:2px solid #d7edf9;margin-bottom:7px}
+
+/* Cartões compactos com foto lateral e acesso ao currículo público */
+.professional-directory-card-main{display:flex;align-items:center;gap:14px;min-width:0}
+.professional-directory-card-main .professional-directory-photo{width:76px;height:76px;flex:0 0 76px;object-fit:cover;border-radius:12px;margin:0;border:1px solid #d8e7f1}
+.professional-directory-card-copy{min-width:0}
+.professional-directory-card-copy h3{margin:0 0 6px!important}
+.professional-directory-card-copy p{margin:7px 0 0}
+.professional-profile-link{margin-top:15px;padding:9px 0;border:0;border-top:1px solid #e5edf3;background:transparent;color:#0877b2;font-weight:800;cursor:pointer;text-align:left;width:100%}
+.professional-profile-link:hover{text-decoration:underline}
