@@ -49,11 +49,12 @@ import { BaseProfissionaisENAT } from "./pages/BaseProfissionaisENAT";
 import { AcademiaENAT } from "./pages/AcademiaENAT";
 import { AcademiaAdminENAT } from "./pages/AcademiaAdminENAT";
 import { AulasENATAdmin } from "./pages/AulasENATAdmin";
+import { AreaProfessorENAT } from "./pages/AreaProfessorENAT";
 
 const isGitHubProjectPages=window.location.hostname.endsWith("github.io")&&window.location.pathname.startsWith("/ENAT.HSI");
 const APP_BASENAME=isGitHubProjectPages?"/ENAT.HSI":"";
 
-function PublicPortal(){return <><PortalPublicoENAT/><Link to="/tv" aria-label="ENAT TV" style={{position:"fixed",right:22,bottom:22,zIndex:1000,background:"#07111b",color:"#63caff",border:"1px solid #63caff",borderRadius:10,padding:"13px 18px",fontWeight:800,textDecoration:"none",boxShadow:"0 8px 28px rgba(0,0,0,.25)"}}>📺 ENAT TV</Link></>}
+function PublicPortal(){return <><PortalPublicoENAT/><Link to="/professor" aria-label="Área do Professor" style={{position:"fixed",left:22,bottom:22,zIndex:1000,background:"#071d2d",color:"#d7f2ff",border:"1px solid #1686bd",borderRadius:10,padding:"13px 18px",fontWeight:800,textDecoration:"none",boxShadow:"0 8px 28px rgba(0,0,0,.18)"}}>👨‍🏫 Área do Professor</Link><Link to="/tv" aria-label="ENAT TV" style={{position:"fixed",right:22,bottom:22,zIndex:1000,background:"#07111b",color:"#63caff",border:"1px solid #63caff",borderRadius:10,padding:"13px 18px",fontWeight:800,textDecoration:"none",boxShadow:"0 8px 28px rgba(0,0,0,.25)"}}>📺 ENAT TV</Link></>}
 
 function CoursesEntry(){const {session,profile,loading}=useAuth();const hasAccess=new URLSearchParams(window.location.hash.replace(/^#/,"")).has("access");if(hasAccess)return <CursoAcessoNeuroDrive/>;if(loading)return <main style={{minHeight:"100vh",display:"grid",placeItems:"center",background:"#07111b",color:"#63caff",fontFamily:"Arial"}}>Validando autorização…</main>;if(!session||!profile)return <Navigate to="/login" replace state={{from:"/cursos"}}/>;return <PrivateArea/>}
 
@@ -114,4 +115,4 @@ function PrivateArea(){
  </>
 }
 
-export default function CentralENATHSI(){return <BrowserRouter basename={APP_BASENAME}><AuthProvider><Routes><Route path="/" element={<PublicPortal/>}/><Route path="/portal" element={<PublicPortal/>}/><Route path="/academia" element={<AcademiaENAT/>}/><Route path="/tv" element={<ENATTV/>}/><Route path="/tv-estudio" element={<ENATTVStudio/>}/><Route path="/artigo/:id" element={<ArticleReaderENAT/>}/><Route path="/depoimentos" element={<DepoimentosPublicosENAT/>}/><Route path="/login" element={<LoginENAT/>}/><Route path="/validar/:code" element={<ValidarCertificadoPublico/>}/><Route path="/cursos" element={<CoursesEntry/>}/><Route path="*" element={<PrivateArea/>}/></Routes></AuthProvider></BrowserRouter>}
+export default function CentralENATHSI(){return <BrowserRouter basename={APP_BASENAME}><AuthProvider><Routes><Route path="/" element={<PublicPortal/>}/><Route path="/portal" element={<PublicPortal/>}/><Route path="/academia" element={<AcademiaENAT/>}/><Route path="/professor" element={<AreaProfessorENAT/>}/><Route path="/tv" element={<ENATTV/>}/><Route path="/tv-estudio" element={<ENATTVStudio/>}/><Route path="/artigo/:id" element={<ArticleReaderENAT/>}/><Route path="/depoimentos" element={<DepoimentosPublicosENAT/>}/><Route path="/login" element={<LoginENAT/>}/><Route path="/validar/:code" element={<ValidarCertificadoPublico/>}/><Route path="/cursos" element={<CoursesEntry/>}/><Route path="*" element={<PrivateArea/>}/></Routes></AuthProvider></BrowserRouter>}
