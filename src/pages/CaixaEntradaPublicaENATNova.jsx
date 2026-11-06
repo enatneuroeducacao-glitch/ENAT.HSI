@@ -6,6 +6,7 @@ const labels = {
   article_submission: "Artigo enviado",
   news_submission: "Notícia enviada",
   contact: "Contato",
+  professional_contact: "Contato com profissional",
 };
 
 const statusLabels = {
@@ -51,7 +52,7 @@ function getMessage(row) {
 
 function MailComposer({ mode, message, onClose, onSent }) {
   const isReply = mode === "reply";
-  const [to, setTo] = useState(isReply ? message.email || "" : "");
+  const [to, setTo] = useState(isReply ? message.email || "" : (message.kind === "professional_contact" ? message.recipient_email || "" : ""));
   const [cc, setCc] = useState("");
   const [subject, setSubject] = useState(
     isReply ? `Re: ${getSubject(message).replace(/^Re:\s*/i, "")}` : `Encaminhamento: ${getSubject(message)}`
@@ -112,6 +113,15 @@ export function CaixaEntradaPublicaENATNova() {
   const [compose, setCompose] = useState(null);
   const [busy, setBusy] = useState(false);
   const [msg, setMsg] = useState("");
+
+  useEffect(() => {
+    if (selected?.kind !== "professional_contact" || !selected?.metadata?.recipient_professional_id) return;
+    let alive = true;
+    supabase.from("enat_public_inbox").select("name,email,phone").eq("id", selected.metadata.recipient_professional_id).maybeSingle().then(({ data }) => {
+      if (alive && data) setSelected(old => old?.id === selected.id ? { ...old, recipient_name: data.name, recipient_email: data.email, recipient_phone: data.phone } : old);
+    });
+    return () => { alive = false; };
+  }, [selected?.id]);
 
   const load = async () => {
     setMsg("");
@@ -214,6 +224,7 @@ export function CaixaEntradaPublicaENATNova() {
             <p><strong>E-mail:</strong> {selected.email || "—"}</p>
             <p><strong>WhatsApp:</strong> {selected.phone || "—"}</p>
             <p><strong>Tipo:</strong> {labels[selected.kind] || "Contato"}</p>
+            {selected.kind === "professional_contact" && <><p><strong>Profissional destinatário:</strong> {selected.recipient_name || selected.metadata?.recipient_name || "Carregando…"}</p><p><strong>Contato privado do profissional:</strong> {selected.recipient_email || "Carregando…"}</p><p><strong>Assunto:</strong> {selected.metadata?.contact_category || selected.subject || "—"}</p></>}
             <p><strong>Status:</strong> {statusLabels[selected.status] || selected.status || "Nova"}</p>
             <hr style={{ borderColor: "#203b52", margin: "20px 0" }} />
             <h3>Mensagem</h3>
