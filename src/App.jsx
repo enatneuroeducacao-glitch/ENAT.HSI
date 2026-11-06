@@ -50,6 +50,7 @@ import { AcademiaENAT } from "./pages/AcademiaENAT";
 import { AcademiaAdminENAT } from "./pages/AcademiaAdminENAT";
 import { AulasENATAdmin } from "./pages/AulasENATAdmin";
 import { AreaProfessorENAT } from "./pages/AreaProfessorENAT";
+import { ProfissionalPublicoENAT } from "./pages/ProfissionalPublicoENAT";
 
 const isGitHubProjectPages=window.location.hostname.endsWith("github.io")&&window.location.pathname.startsWith("/ENAT.HSI");
 const APP_BASENAME=isGitHubProjectPages?"/ENAT.HSI":"";
@@ -115,4 +116,4 @@ function PrivateArea(){
  </>
 }
 
-export default function CentralENATHSI(){return <BrowserRouter basename={APP_BASENAME}><AuthProvider><Routes><Route path="/" element={<PublicPortal/>}/><Route path="/portal" element={<PublicPortal/>}/><Route path="/academia" element={<AcademiaENAT/>}/><Route path="/professor" element={<AreaProfessorENAT/>}/><Route path="/tv" element={<ENATTV/>}/><Route path="/tv-estudio" element={<ENATTVStudio/>}/><Route path="/artigo/:id" element={<ArticleReaderENAT/>}/><Route path="/depoimentos" element={<DepoimentosPublicosENAT/>}/><Route path="/login" element={<LoginENAT/>}/><Route path="/validar/:code" element={<ValidarCertificadoPublico/>}/><Route path="/cursos" element={<CoursesEntry/>}/><Route path="*" element={<PrivateArea/>}/></Routes></AuthProvider></BrowserRouter>}
+export default function CentralENATHSI(){return <BrowserRouter basename={APP_BASENAME}><AuthProvider><Routes><Route path="/" element={<PublicPortal/>}/><Route path="/portal" element={<PublicPortal/>}/><Route path="/profissional/:id" element={<ProfissionalPublicoENAT/>}/><Route path="/academia" element={<AcademiaENAT/>}/><Route path="/professor" element={<AreaProfessorENAT/>}/><Route path="/tv" element={<ENATTV/>}/><Route path="/tv-estudio" element={<ENATTVStudio/>}/><Route path="/artigo/:id" element={<ArticleReaderENAT/>}/><Route path="/depoimentos" element={<DepoimentosPublicosENAT/>}/><Route path="/login" element={<LoginENAT/>}/><Route path="/validar/:code" element={<ValidarCertificadoPublico/>}/><Route path="/cursos" element={<CoursesEntry/>}/><Route path="*" element={<PrivateArea/>}/></Routes></AuthProvider></BrowserRouter>}
