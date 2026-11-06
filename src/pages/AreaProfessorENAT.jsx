@@ -14,6 +14,10 @@ export function AreaProfessorENAT(){
  const [busy,setBusy]=useState(false),[loading,setLoading]=useState(true),[error,setError]=useState(""),[notice,setNotice]=useState("");
  const [profile,setProfile]=useState(null),[profileOpen,setProfileOpen]=useState(false),[profilePhoto,setProfilePhoto]=useState(null),[profilePreview,setProfilePreview]=useState(""),[profileBusy,setProfileBusy]=useState(false);
  const loadWorkspace=useCallback(async(user)=>{
+  const {data:teacherProfile,error:profileError}=await supabase.from("enat_instructors").select("id,name,qualification,formation,institution,registration,photo_path").eq("user_id",user.id).maybeSingle();
+  if(profileError)throw profileError;
+  setProfile(teacherProfile||null);
+  setProfilePreview(teacherProfile?.photo_path?supabase.storage.from("enat-teacher-profiles").getPublicUrl(teacherProfile.photo_path).data.publicUrl:"");
   const {data:assigned,error:assignError}=await supabase.from("ava_teacher_assignments").select("id,course_id,module_id,active").eq("teacher_id",user.id).eq("active",true);
   if(assignError)throw assignError;
   if(!assigned?.length){setAssignments([]);setCourses([]);setModules([]);setLessons([]);throw new Error("Sua conta ainda não possui disciplinas atribuídas. Solicite ao administrador do ENAT a vinculação do curso.");}
