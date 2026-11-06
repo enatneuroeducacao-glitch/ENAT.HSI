@@ -7,6 +7,7 @@ const labels = {
   news_submission: "Notícia enviada",
   contact: "Contato",
   professional_contact: "Contato com profissional",
+  professional_profile_update: "Atualização de perfil profissional",
 };
 
 const statusLabels = {
@@ -225,6 +226,7 @@ export function CaixaEntradaPublicaENATNova() {
             <p><strong>WhatsApp:</strong> {selected.phone || "—"}</p>
             <p><strong>Tipo:</strong> {labels[selected.kind] || "Contato"}</p>
             {selected.kind === "professional_contact" && <><p><strong>Profissional destinatário:</strong> {selected.recipient_name || selected.metadata?.recipient_name || "Carregando…"}</p><p><strong>Contato privado do profissional:</strong> {selected.recipient_email || "Carregando…"}</p><p><strong>Assunto:</strong> {selected.metadata?.contact_category || selected.subject || "—"}</p></>}
+            {selected.kind === "professional_profile_update" && <section style={{marginTop:18,padding:14,border:"1px solid #31506b",borderRadius:8}}><h3>Dados propostos para atualização</h3><p><strong>Perfil:</strong> {selected.metadata?.recipient_name || "—"}</p><pre style={{whiteSpace:"pre-wrap",fontSize:12,lineHeight:1.5,color:"#c5d5e2"}}>{JSON.stringify(selected.metadata?.proposed_profile || {},null,2)}</pre></section>}
             <p><strong>Status:</strong> {statusLabels[selected.status] || selected.status || "Nova"}</p>
             <hr style={{ borderColor: "#203b52", margin: "20px 0" }} />
             <h3>Mensagem</h3>
