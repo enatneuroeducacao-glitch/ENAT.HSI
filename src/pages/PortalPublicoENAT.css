@@ -117,5 +117,4 @@
 .professional-directory-card-copy{min-width:0}
 .professional-directory-card-copy h3{margin:0 0 6px!important}
 .professional-directory-card-copy p{margin:7px 0 0}
-.professional-profile-link{margin-top:15px;padding:9px 0;border:0;border-top:1px solid #e5edf3;background:transparent;color:#0877b2;font-weight:800;cursor:pointer;text-align:left;width:100%}
-.professional-profile-link:hover{text-decoration:underline}
+.professional-profile-actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:15px;padding-top:12px;border-top:1px solid #e5edf3}.professional-profile-link,.professional-contact-link{display:inline-flex;align-items:center;justify-content:center;min-height:38px;padding:9px 14px;border:1px solid #cbdde9;border-radius:8px;background:#f5faff;color:#0877b2;font-weight:800;cursor:pointer;text-align:center;text-decoration:none;flex:1 1 130px}.professional-contact-link{background:#087bb5;border-color:#087bb5;color:#fff}.professional-profile-link:hover,.professional-contact-link:hover{filter:brightness(.96);text-decoration:none}
