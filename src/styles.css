@@ -302,10 +302,10 @@ body:has(.enat-admin-menu) .table-card {
 /* Layout administrativo lateral — ENAT HSI */
 body:has(.enat-admin-menu) main{
   min-height:100vh !important;
-  margin-left:264px !important;
-  width:calc(100% - 264px) !important;
+  margin-left:278px !important;
+  width:calc(100% - 278px) !important;
   max-width:none !important;
-  padding:36px max(28px,calc((100vw - 264px - 1180px)/2)) 56px !important;
+  padding:36px max(28px,calc((100vw - 278px - 1180px)/2)) 56px !important;
 }
 body:has(.enat-admin-menu) .section{
   width:min(1180px,calc(100% - 0px)) !important;
@@ -331,10 +331,10 @@ body:has(.enat-admin-menu) .dash-head{margin-top:0 !important}
 /* Estrutura definitiva do conteúdo administrativo: o menu lateral ocupa sua própria coluna. */
 .enat-admin-content{
   box-sizing:border-box;
-  width:calc(100% - 264px);
+  width:calc(100% - 278px);
   min-width:0;
   min-height:100vh;
-  margin-left:264px;
+  margin-left:278px;
   padding:36px 28px 56px;
   background:var(--enat-bg);
 }
