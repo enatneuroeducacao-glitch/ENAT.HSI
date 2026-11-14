@@ -1,180 +1,38 @@
-.enat-admin-menu{
-  position:fixed;
-  inset:0 auto 0 0;
-  width:264px;
-  z-index:1000;
-  background:rgba(5,15,24,.99);
-  border-right:1px solid #203849;
-  box-shadow:12px 0 35px rgba(0,0,0,.18);
-}
-.enat-admin-sidebar{
-  height:100%;
-  box-sizing:border-box;
-  display:flex;
-  flex-direction:column;
-  padding:18px 14px 14px;
-  overflow:hidden;
-}
-.enat-admin-brand-link{
-  display:flex;
-  align-items:center;
-  min-height:48px;
-  padding:2px 8px 14px;
-  text-decoration:none;
-  border-bottom:1px solid rgba(99,202,255,.12);
-}
-.enat-admin-context{padding:14px 9px 10px}
-.enat-admin-context span,.enat-admin-group h2{
-  display:block;
-  margin:0 0 6px;
-  color:#688397;
-  font-size:9px;
-  font-weight:900;
-  letter-spacing:1.35px;
-  text-transform:uppercase;
-}
-.enat-admin-context strong{
-  color:#eaf6ff;
-  font-size:13px;
-  letter-spacing:.01em;
-}
-.enat-admin-menu nav{
-  flex:1;
-  min-height:0;
-  overflow-y:auto;
-  padding-right:3px;
-}
-.enat-admin-group{
-  margin:0 0 13px;
-}
-.enat-admin-group h2{padding:0 9px;margin-bottom:5px}
-.enat-admin-link{
-  display:flex;
-  align-items:center;
-  gap:9px;
-  width:100%;
-  box-sizing:border-box;
-  min-height:38px;
-  padding:8px 9px;
-  color:#a9bdc9;
-  text-decoration:none;
-  font-size:12px;
-  font-weight:800;
-  line-height:1.2;
-  border:1px solid transparent;
-  border-radius:9px;
-  transition:background .16s ease,border-color .16s ease,color .16s ease,transform .16s ease;
-}
-.enat-admin-link:hover{
-  color:#eaf6ff;
-  background:#0d2231;
-  border-color:rgba(99,202,255,.12);
-  transform:translateX(1px);
-}
-.enat-admin-link.active{
-  color:#63caff;
-  background:linear-gradient(90deg,rgba(99,202,255,.14),rgba(99,202,255,.04));
-  border-color:rgba(99,202,255,.2);
-  box-shadow:inset 3px 0 0 #63caff;
-}
-.enat-admin-icon{
-  width:20px;
-  flex:0 0 20px;
-  text-align:center;
-  font-size:15px;
-}
-.external-mark{margin-left:auto;color:#60798a;font-size:12px}
-.enat-admin-user{
-  margin-top:10px;
-  padding:11px 8px 0;
-  border-top:1px solid rgba(99,202,255,.12);
-  display:grid;
-  gap:7px;
-}
-.enat-admin-user-info{
-  display:flex;
-  align-items:center;
-  gap:9px;
-  min-width:0;
-}
-.enat-admin-user-avatar{
-  display:grid;
-  place-items:center;
-  width:30px;
-  height:30px;
-  flex:0 0 30px;
-  border-radius:50%;
-  background:#102b3d;
-  color:#63caff;
-  border:1px solid #365163;
-  font-size:12px;
-  font-weight:900;
-}
-.enat-admin-user-info div{min-width:0}
-.enat-admin-user-info strong,.enat-admin-user-info small{
-  display:block;
-  overflow:hidden;
-  text-overflow:ellipsis;
-  white-space:nowrap;
-}
-.enat-admin-user-info strong{color:#d9e8ef;font-size:11px}
-.enat-admin-user-info small{color:#6f8797;font-size:9px;margin-top:2px}
-.enat-admin-user button{
-  width:100%;
-  min-height:34px;
-  border:1px solid #365163;
-  background:#0c1c29;
-  color:#d9e8ef;
-  padding:7px 9px;
-  cursor:pointer;
-  border-radius:8px;
-  font-size:11px;
-  font-weight:800;
-}
-.enat-admin-user button:hover{border-color:#63caff;color:#63caff}
-.enat-admin-user button.logout{background:transparent;color:#91a7b4}
-.enat-admin-menu nav::-webkit-scrollbar{width:5px}
-.enat-admin-menu nav::-webkit-scrollbar-thumb{background:#365163;border-radius:5px}
+.enat-admin-menu{position:fixed;inset:0 auto 0 0;width:278px;z-index:1000;background:linear-gradient(165deg,#091827 0%,#06111d 58%,#081522 100%);border-right:1px solid rgba(82,190,235,.24);box-shadow:18px 0 50px rgba(0,0,0,.28);isolation:isolate}
+.enat-admin-menu:after{content:"";position:absolute;inset:0;z-index:-1;pointer-events:none;opacity:.22;background-image:linear-gradient(rgba(80,180,220,.08) 1px,transparent 1px),linear-gradient(90deg,rgba(80,180,220,.08) 1px,transparent 1px);background-size:28px 28px;mask-image:linear-gradient(to bottom,black,transparent 80%)}
+.enat-admin-sidebar{height:100%;box-sizing:border-box;display:flex;flex-direction:column;padding:18px 13px 13px;overflow:hidden}
+.enat-admin-brand-link{display:flex;align-items:center;min-height:54px;padding:2px 9px 15px;text-decoration:none;border-bottom:1px solid rgba(99,202,255,.16)}
+.enat-admin-context{position:relative;margin:13px 3px 13px;padding:13px 12px 12px;border:1px solid rgba(99,202,255,.16);border-radius:12px;background:linear-gradient(120deg,rgba(22,66,91,.46),rgba(9,25,39,.6));box-shadow:inset 0 1px rgba(255,255,255,.035)}
+.enat-admin-context span,.enat-admin-group h2{display:block;margin:0 0 7px;color:#6f9bb2;font-size:9px;font-weight:900;letter-spacing:1.5px;text-transform:uppercase}
+.enat-admin-context strong{display:block;color:#edf9ff;font-size:13px;letter-spacing:.02em}
+.enat-admin-context small{display:flex;align-items:center;gap:7px;margin-top:8px;color:#8ca8b9;font-size:9px;letter-spacing:.04em}
+.enat-admin-context small i,.enat-user-status{display:inline-block;width:7px;height:7px;border-radius:50%;background:#40dfad;box-shadow:0 0 10px rgba(64,223,173,.75)}
+.enat-admin-menu nav{flex:1;min-height:0;overflow-y:auto;padding:2px 2px 8px}
+.enat-admin-group{margin:0 0 14px}
+.enat-admin-group h2{padding:0 10px;margin:0 0 6px}
+.enat-admin-link{display:flex;align-items:center;gap:10px;width:100%;box-sizing:border-box;min-height:38px;padding:8px 10px;color:#a9bfce;text-decoration:none;font-size:11px;font-weight:750;line-height:1.25;border:1px solid transparent;border-radius:9px;transition:background .18s,border-color .18s,color .18s,transform .18s}
+.enat-admin-link:hover{color:#effaff;background:rgba(31,91,121,.23);border-color:rgba(99,202,255,.17);transform:translateX(2px)}
+.enat-admin-link.active{color:#8fe0ff;background:linear-gradient(100deg,rgba(38,157,207,.22),rgba(20,69,97,.1));border-color:rgba(99,202,255,.32);box-shadow:inset 2px 0 #63caff,0 0 18px rgba(42,160,210,.07)}
+.enat-admin-icon{display:grid;place-items:center;width:22px;height:22px;flex:0 0 22px;color:#70c9eb;background:rgba(60,148,184,.1);border:1px solid rgba(99,202,255,.12);border-radius:7px;font-size:14px}
+.enat-link-chevron{margin-left:auto;color:#55788c;font-size:17px;opacity:0;transition:opacity .18s}
+.enat-admin-link:hover .enat-link-chevron,.enat-admin-link.active .enat-link-chevron{opacity:1}
+.external-mark{margin-left:auto;color:#6f9bb2;font-size:12px}
+.enat-admin-user{margin-top:8px;padding:12px 7px 0;border-top:1px solid rgba(99,202,255,.16);display:grid;gap:7px}
+.enat-admin-user-info{display:flex;align-items:center;gap:9px;min-width:0;padding:4px 2px 7px}
+.enat-admin-user-avatar{display:grid;place-items:center;width:32px;height:32px;flex:0 0 32px;border-radius:10px;background:linear-gradient(145deg,#174765,#102638);color:#9ce5ff;border:1px solid rgba(99,202,255,.35);font-size:12px;font-weight:900}
+.enat-admin-user-info div{min-width:0;flex:1}
+.enat-admin-user-info strong,.enat-admin-user-info small{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.enat-admin-user-info strong{color:#e0f0f8;font-size:11px}
+.enat-admin-user-info small{color:#7895a8;font-size:9px;margin-top:3px}
+.enat-user-status{width:6px;height:6px;flex:0 0 6px}
+.enat-admin-user button{width:100%;min-height:34px;border:1px solid rgba(99,202,255,.2);background:rgba(13,38,56,.78);color:#cce5f1;padding:7px 9px;cursor:pointer;border-radius:8px;font-size:10px;font-weight:800;transition:.18s}
+.enat-admin-user button:hover{border-color:#63caff;color:#8fe0ff;background:rgba(22,69,95,.8)}
+.enat-admin-user button.logout{background:transparent;color:#829aaa;border-color:rgba(99,202,255,.1)}
+.enat-admin-menu nav::-webkit-scrollbar{width:4px}
+.enat-admin-menu nav::-webkit-scrollbar-thumb{background:#28516a;border-radius:5px}
 .enat-admin-mobile-toggle,.enat-admin-overlay{display:none}
-
-@media(max-width:900px){
-  .enat-admin-menu{
-    width:264px;
-    transform:translateX(-102%);
-    transition:transform .2s ease;
-    box-shadow:12px 0 35px rgba(0,0,0,.35);
-  }
-  .enat-admin-menu.mobile-open{transform:translateX(0)}
-  .enat-admin-mobile-toggle{
-    display:grid;
-    position:fixed;
-    top:12px;
-    left:12px;
-    z-index:1101;
-    width:42px;
-    height:42px;
-    place-content:center;
-    gap:4px;
-    border:1px solid #365163;
-    border-radius:10px;
-    background:#07111b;
-    cursor:pointer;
-    box-shadow:0 8px 24px rgba(0,0,0,.25);
-  }
-  .enat-admin-mobile-toggle span{
-    display:block;
-    width:19px;
-    height:2px;
-    background:#63caff;
-    border-radius:2px;
-  }
-  .enat-admin-overlay{
-    display:block;
-    position:fixed;
-    inset:0;
-    z-index:999;
-    border:0;
-    background:rgba(0,0,0,.5);
-    cursor:pointer;
-  }
-}
+.enat-admin-content{position:relative;background-image:radial-gradient(ellipse at 72% 0%,rgba(26,104,142,.13),transparent 38%),linear-gradient(180deg,rgba(12,34,51,.22),transparent 260px)}
+.enat-admin-content:before{content:"CENTRAL ENAT  /  AMBIENTE ADMINISTRATIVO";display:flex;align-items:center;position:relative;max-width:1180px;margin:0 auto 18px;padding:0 0 13px;color:#6f9bb2;border-bottom:1px solid rgba(99,202,255,.13);font-size:9px;font-weight:850;letter-spacing:1.7px}
+.enat-admin-content:after{content:"";position:absolute;top:36px;right:28px;width:6px;height:6px;border-radius:50%;background:#40dfad;box-shadow:0 0 12px rgba(64,223,173,.7);pointer-events:none}
+@media(max-width:900px){.enat-admin-menu{width:278px;transform:translateX(-102%);transition:transform .22s ease;box-shadow:18px 0 45px rgba(0,0,0,.4)}.enat-admin-menu.mobile-open{transform:translateX(0)}.enat-admin-mobile-toggle{display:grid;position:fixed;top:12px;left:12px;z-index:1101;width:42px;height:42px;place-content:center;gap:4px;border:1px solid rgba(99,202,255,.35);border-radius:11px;background:#091827;cursor:pointer;box-shadow:0 8px 24px rgba(0,0,0,.3)}.enat-admin-mobile-toggle span{display:block;width:19px;height:2px;background:#83dcff;border-radius:2px}.enat-admin-overlay{display:block;position:fixed;inset:0;z-index:999;border:0;background:rgba(0,0,0,.58);cursor:pointer}.enat-admin-content:before{margin-bottom:14px;padding-left:48px}.enat-admin-content:after{top:7px;right:22px}}
+@media(prefers-reduced-motion:reduce){.enat-admin-link,.enat-admin-menu,.enat-link-chevron{transition:none}}
