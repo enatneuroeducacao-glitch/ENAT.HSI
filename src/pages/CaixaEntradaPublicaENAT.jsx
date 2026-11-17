@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { supabase } from "../lib/supabaseClient";
+import { RichArticleEditor } from "../components/RichArticleEditor";
 
 const labels = {
   interest: "Interesse",
@@ -176,7 +177,7 @@ function EditorialEditor({ editing, onSaved, onCancel }) {
         <label style={labelStyle}>Tags<input value={form.tags || ""} onChange={(e) => set("tags", e.target.value)} style={inputStyle} /></label>
       </div>
       <label style={labelStyle}>Resumo<textarea rows={4} value={form.summary || ""} onChange={(e) => set("summary", e.target.value)} style={{ ...inputStyle, resize: "vertical" }} /></label>
-      <label style={labelStyle}>Conteúdo *<textarea required rows={14} value={form.content || ""} onChange={(e) => set("content", e.target.value)} style={{ ...inputStyle, resize: "vertical" }} /></label>
+      <label style={labelStyle}>Conteúdo *<RichArticleEditor value={form.content || ""} onChange={(value) => set("content", value)} /></label>
       <label style={labelStyle}>Biografia do autor<textarea rows={3} value={form.author_bio || ""} onChange={(e) => set("author_bio", e.target.value)} style={{ ...inputStyle, resize: "vertical" }} /></label>
       <div style={{ display: "flex", gap: 18 }}>
         <label><input type="checkbox" checked={form.published !== false} onChange={(e) => set("published", e.target.checked)} /> Publicado</label>
